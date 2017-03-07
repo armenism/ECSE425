@@ -1,8 +1,12 @@
 --ALU implementation for the pipelined processor
 --See details for OPs at https://cse.sc.edu/~jbakos/611/tutorials/alu_design_specs.shtml
 
+--OP codes: https://en.wikibooks.org/wiki/MIPS_Assembly/Instruction_Formats
+
 --ALU must implement up to 15 arithmetical functions, need 4 bit OP code input to indicate what instruction
 --we need to apply on both data inputs
+--0000 > add
+--0001 > and
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
