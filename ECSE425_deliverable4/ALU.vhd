@@ -76,22 +76,90 @@ entity ALU is
 		ALU_CONTROL_CODE: in std_logic_vector(3 downto 0);
 		data_A : in std_logic_vector(31 downto 0);
 		data_B : in std_logic_vector(31 downto 0);
-		ZERO : out std_logic;
+		--ZERO : out std_logic;
 		RESULT : out std_logic_vector(31 downto 0);
 	);
 
 end entity ALU;
 
 architecture alu_arch of ALU is
+	
+	signal intermediate_result: std_logic_vector(31 downto 0);
 
 	begin
 
-		alu_proc : process(ALU_function_code,dataA,dataB)
+		alu_proc : process(ALU_CONTROL_CODE,dataA,dataB)
 
 		begin
 
-		--ALU logic here
+			--ALU logic here
+
+			case ALU_CONTROL_CODE is:
+
+				--CASE add,addi
+				when "0000" =>
+					intermediate_result <= std_logic_vector(signed(data_A) + signed(data_B));
+
+				--CASE sub
+				when "0001" =>
+					intermediate_result <= std_logic_vector(signed(data_A) - signed(data_B));
+
+				--CASE mult
+				when "0010" =>
+					--TODO
+
+				--CASE div
+				when "0011" =>
+					--TODO
+
+				--CASE slt,slti
+				when "0100" =>
+					--TODO
+
+				--CASE and,andi
+				when "0101" =>
+					--TODO
+
+				--CASE or,ori
+				when "0110" =>
+					--TODO
+				
+				--CASE nor
+				when "0111" =>
+					--TODO
+
+				--CASE xor, xori
+				when "1000" =>
+					--TODO
+
+				--CASE mfhi
+				when "1001" =>
+					--TODO
+
+				--CASE mflo
+				when "1010" =>
+					--TODO
+
+				--CASE lui
+				when "1011" =>
+					--TODO
+
+				--CASE slt
+				when "1100" =>
+					--TODO
+
+				--CASE slr
+				when "1101" =>
+					--TODO
+
+				--CASE sra
+				when "1110" =>
+					--TODO
+
+			end case;
 
 		end process;
+
+		RESULT <= intermediate_result;
 
 	end architecture;
