@@ -76,7 +76,7 @@ entity ALU is
 		ALU_CONTROL_CODE: in std_logic_vector(3 downto 0);
 		data_A : in std_logic_vector(31 downto 0);
 		data_B : in std_logic_vector(31 downto 0);
-		--ZERO : out std_logic;
+		ZERO : out std_logic;
 		RESULT : out std_logic_vector(31 downto 0);
 	);
 
@@ -86,13 +86,26 @@ architecture alu_arch of ALU is
 	
 	signal intermediate_result: std_logic_vector(31 downto 0);
 
+	--Need a HI and LO registers to keep the 64 bit result from multiplication and division
+	signal HI: std_logic_vector(31 downto 0);
+	signal LO: std_logic_vector(31 downto 0);
+
 	begin
 
 		alu_proc : process(ALU_CONTROL_CODE,dataA,dataB)
 
-		begin
+		--ALU logic here
 
-			--ALU logic here
+		--Var necessary to 32x32 bit mult and 32/32 bit div
+		variable multiplication_res : std_logic_vector(63 downto 0);
+
+		--Var necessary to 32/32 bit div and remained for lower bits
+		variable division_res : std_logic_vector(32 downto 0);
+		variable division_remainer : std_logic_vector(32 downto 0);
+
+		--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
+
+		begin
 
 			case ALU_CONTROL_CODE is:
 
@@ -106,11 +119,19 @@ architecture alu_arch of ALU is
 
 				--CASE mult
 				when "0010" =>
-					--TODO
+					-- do signed multiplication and store higher bits in HI and lwoer bits in LO
+					multiplication_res := std_logic_vector(signed(data_A) * signed(data_B));
+					LO <= multiplication_res(31 downto 0);
+					HI <= multiplication_res(63 downto 32);
 
 				--CASE div
 				when "0011" =>
-					--TODO
+					-- do signed division and assign higher bits to remainder
+					division_res := std_logic_vector(signed(data_A) / signed(data_B));
+					--division_remainer := std_logic_vector(signed(data_A) mod signed(data_B));
+					division_remainer := std_logic_vector(signed(data_A) rem signed(data_B));
+					LO <= division_res;
+					HI <= division_remainer;
 
 				--CASE slt,slti
 				when "0100" =>
