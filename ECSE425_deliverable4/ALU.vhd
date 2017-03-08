@@ -4,7 +4,7 @@
 
 -- OP codes: https://en.wikibooks.org/wiki/MIPS_Assembly/Instruction_Formats
 
--- OP codes and Instr codes for this project: Look into the instruction_types folder in the assembler folder
+-- OP codes and FUNC codes for this project: Look into the instruction_types folder in the assembler folder
 -- ALU must implement up to 15 arithmetical functions, need 4 bit OP code input to indicate what instruction
 -- we need to apply on both data inputs
 
