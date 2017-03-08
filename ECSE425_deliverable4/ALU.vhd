@@ -4,7 +4,7 @@
 
 -- OP codes: https://en.wikibooks.org/wiki/MIPS_Assembly/Instruction_Formats
 
--- OP codes and Instr codes for this project: Look into the instruction_types folder in the assembler folder
+-- OP codes and FUNC codes for this project: Look into the instruction_types folder in the assembler folder
 -- ALU must implement up to 15 arithmetical functions, need 4 bit OP code input to indicate what instruction
 -- we need to apply on both data inputs
 
@@ -38,7 +38,7 @@
 -- mfhi
 -- mflo
 -- lui
--- slt
+-- sll
 -- srl
 -- sra
 -- 15 functions: 4 bit necessary for ALU Control to output to ALU to indicate the right operation. ALU Control will intake instruction OP code and INSTR code (in R type
@@ -58,7 +58,7 @@
 -- mfhi						1001
 -- mflo						1010
 -- lui						1011
--- slt 						1100
+-- sll 						1100
 -- srl 						1101
 -- sra						1110
 
@@ -104,6 +104,7 @@ architecture alu_arch of ALU is
 		variable division_remainer : std_logic_vector(32 downto 0);
 
 		--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
+		--More on slt check here: http://web.cse.ohio-state.edu/~teodores/download/teaching/cse675.au08/Cse675.02.F.ALUDesign_part2.pdf
 
 		begin
 
@@ -133,39 +134,45 @@ architecture alu_arch of ALU is
 					LO <= division_res;
 					HI <= division_remainer;
 
-				--CASE slt,slti
+				--CASE slt,slti  
 				when "0100" =>
-					--TODO
+					if (signed(data_A) < signed(data_B)) then
+						intermediate_result <= '00000000000000000000000000000001';
+					else
+						intermediate_result <= '00000000000000000000000000000000';
+					end if;
 
 				--CASE and,andi
 				when "0101" =>
-					--TODO
+					intermediate_result <= data_A and data_B;
 
 				--CASE or,ori
 				when "0110" =>
-					--TODO
+					intermediate_result <= data_A or data_B;
 				
 				--CASE nor
 				when "0111" =>
-					--TODO
+					intermediate_result <= data_A nor data_B;
 
 				--CASE xor, xori
 				when "1000" =>
-					--TODO
+					intermediate_result <= data_A xor data_B;
 
 				--CASE mfhi
+				--For purposes of moving the higher bits of mult or div onto geenral purpose reg
 				when "1001" =>
-					--TODO
+					intermediate_result <= LO;
 
 				--CASE mflo
+				--For purposes of moving the lower bits of mult or div onto geenral purpose reg
 				when "1010" =>
-					--TODO
+					intermediate_result <= HI;
 
 				--CASE lui
 				when "1011" =>
 					--TODO
 
-				--CASE slt
+				--CASE sll
 				when "1100" =>
 					--TODO
 
