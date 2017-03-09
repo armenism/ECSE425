@@ -72,12 +72,12 @@ USE ieee.numeric_std.all;
 entity ALU is 
 
 	port(
-		clk: in std_logic;
-		ALU_CONTROL_CODE: in std_logic_vector(3 downto 0);
-		data_A : in std_logic_vector(31 downto 0);
-		data_B : in std_logic_vector(31 downto 0);
-		ZERO : out std_logic;
-		RESULT : out std_logic_vector(31 downto 0);
+		clk: in std_logic;										--clock
+		ALU_CONTROL_CODE: in std_logic_vector(3 downto 0);		--control code for ALU OP from ALU Control
+		data_A : in std_logic_vector(31 downto 0);				--RS reg
+		data_B : in std_logic_vector(31 downto 0);				--RT reg
+		ZERO : out std_logic;									--zero out
+		RESULT : out std_logic_vector(31 downto 0);				--result out
 	);
 
 end entity ALU;
@@ -85,6 +85,7 @@ end entity ALU;
 architecture alu_arch of ALU is
 	
 	signal intermediate_result: std_logic_vector(31 downto 0);
+	signal intermediate_zero: std_logic;
 
 	--Need a HI and LO registers to keep the 64 bit result from multiplication and division
 	signal HI: std_logic_vector(31 downto 0);
@@ -92,7 +93,7 @@ architecture alu_arch of ALU is
 
 	begin
 
-		alu_proc : process(ALU_CONTROL_CODE,dataA,dataB)
+		alu_proc : process(ALU_CONTROL_CODE,dataA,dataB,SHAMT)
 
 		--ALU logic here
 
@@ -106,7 +107,11 @@ architecture alu_arch of ALU is
 		--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
 		--More on slt check here: http://web.cse.ohio-state.edu/~teodores/download/teaching/cse675.au08/Cse675.02.F.ALUDesign_part2.pdf
 
+		variable lui_temp : std_logic_vector(32 downto 0);
+
 		begin
+
+			intermediate_zero<='0';
 
 			case ALU_CONTROL_CODE is:
 
@@ -169,25 +174,44 @@ architecture alu_arch of ALU is
 					intermediate_result <= HI;
 
 				--CASE lui
+				--Shifts the immediate value to left by 16 bits and lower bits become all 0's
+				--First do sll and then assign 0's to bits 0 to 15
+				--Upper immediate will be provided in data_A
 				when "1011" =>
-					--TODO
+					lui_temp := to_stdlogicvector(to_bitvector(data_A) sll 16);
+					--lui_temp(15 downto 0) <= '0000000000000000';
+					intermediate_result <= lui_temp;
 
 				--CASE sll
+				-- Shift amounts specified in data_B (no shamt signal incoming to ALU)
 				when "1100" =>
-					--TODO
+					intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sll to_integer(signed(data_B)));
 
 				--CASE slr
 				when "1101" =>
-					--TODO
+					intermediate_result <= to_stdlogicvector(to_bitvector(data_A) slr to_integer(signed(data_B)));
 
 				--CASE sra
 				when "1110" =>
-					--TODO
+					intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sra to_integer(signed(data_B)));
+
+				--CASE eq
+				when "1111" =>
+					if (signed(data_A) = signed(data_B))  then
+						intermediate_zero <= '1';
+						else
+						intermediate_zero <= '0';
+					end if;
+
+				when others =>
+					intermediate_zero<='0';
+					c <= 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
 
 			end case;
 
 		end process;
 
 		RESULT <= intermediate_result;
+		ZERO <= intermediate_zero;
 
 	end architecture;
