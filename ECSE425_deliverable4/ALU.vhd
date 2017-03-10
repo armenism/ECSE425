@@ -197,11 +197,13 @@ architecture alu_arch of ALU is
 
 				--CASE eq
 				when "1111" =>
-					if (signed(data_A) = signed(data_B))  then
-						intermediate_zero <= '1';
-						else
-						intermediate_zero <= '0';
-					end if;
+					--if (signed(data_A) = signed(data_B))  then
+					--	intermediate_zero <= '1';
+					--	else
+					--	intermediate_zero <= '0';
+					--end if;
+					--Equals not necessary
+					--implement jr
 
 				when others =>
 					intermediate_zero<='0';
