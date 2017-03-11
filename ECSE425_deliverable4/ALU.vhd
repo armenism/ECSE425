@@ -43,7 +43,7 @@
 -- sra
 -- 15 functions: 4 bit necessary for ALU Control to output to ALU to indicate the right operation. ALU Control will intake instruction OP code and INSTR code (in R type
 -- instructions only and output a 4-bit signal to ALU to indicate which function to choose)
--- 
+--
 -- MAPPING TO CONSIDER IN THE ALU CONTROL UNIT:
 
 -- add 		(=addi)			0000
@@ -69,7 +69,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-entity ALU is 
+entity ALU is
 
 	port(
 		clk: in std_logic;										--clock
@@ -77,13 +77,13 @@ entity ALU is
 		data_A : in std_logic_vector(31 downto 0);				--RS reg
 		data_B : in std_logic_vector(31 downto 0);				--RT reg
 		ZERO : out std_logic;									--zero out
-		RESULT : out std_logic_vector(31 downto 0);				--result out
+		RESULT : out std_logic_vector(31 downto 0) 		--result out
 	);
 
 end entity ALU;
 
 architecture alu_arch of ALU is
-	
+
 	signal intermediate_result: std_logic_vector(31 downto 0);
 	signal intermediate_zero: std_logic;
 
@@ -139,7 +139,7 @@ architecture alu_arch of ALU is
 					LO <= division_res;
 					HI <= division_remainer;
 
-				--CASE slt,slti  
+				--CASE slt,slti
 				when "0100" =>
 					if (signed(data_A) < signed(data_B)) then
 						intermediate_result <= '00000000000000000000000000000001';
@@ -154,7 +154,7 @@ architecture alu_arch of ALU is
 				--CASE or,ori
 				when "0110" =>
 					intermediate_result <= data_A or data_B;
-				
+
 				--CASE nor
 				when "0111" =>
 					intermediate_result <= data_A nor data_B;
@@ -195,15 +195,13 @@ architecture alu_arch of ALU is
 				when "1110" =>
 					intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sra to_integer(signed(data_B)));
 
-				--CASE eq
+				--CASE eq (needed to produce zero signal for beq, bne)
 				when "1111" =>
-					--if (signed(data_A) = signed(data_B))  then
-					--	intermediate_zero <= '1';
-					--	else
-					--	intermediate_zero <= '0';
-					--end if;
-					--Equals not necessary
-					--implement jr
+					if (signed(data_A) = signed(data_B))  then
+						intermediate_zero <= '1';
+						else
+						intermediate_zero <= '0';
+					end if;
 
 				when others =>
 					intermediate_zero<='0';
