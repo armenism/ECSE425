@@ -91,25 +91,19 @@ architecture alu_arch of ALU is
 	signal HI: std_logic_vector(31 downto 0);
 	signal LO: std_logic_vector(31 downto 0);
 
+	--Var necessary to 32x32 bit mult and 32/32 bit div
+	signal multiplication_res : std_logic_vector(63 downto 0);
+
+	--Var necessary to 32/32 bit div and remained for lower bits
+	signal division_res : std_logic_vector(32 downto 0);
+	signal division_remainer : std_logic_vector(32 downto 0);
+
+	--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
+	--More on slt check here: http://web.cse.ohio-state.edu/~teodores/download/teaching/cse675.au08/Cse675.02.F.ALUDesign_part2.pdf
+
+	signal lui_temp : std_logic_vector(32 downto 0);
+
 	begin
-
-		alu_proc : process(ALU_CONTROL_CODE,dataA,dataB,SHAMT)
-
-		--ALU logic here
-
-		--Var necessary to 32x32 bit mult and 32/32 bit div
-		variable multiplication_res : std_logic_vector(63 downto 0);
-
-		--Var necessary to 32/32 bit div and remained for lower bits
-		variable division_res : std_logic_vector(32 downto 0);
-		variable division_remainer : std_logic_vector(32 downto 0);
-
-		--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
-		--More on slt check here: http://web.cse.ohio-state.edu/~teodores/download/teaching/cse675.au08/Cse675.02.F.ALUDesign_part2.pdf
-
-		variable lui_temp : std_logic_vector(32 downto 0);
-
-		begin
 
 			intermediate_zero<='0';
 
@@ -126,16 +120,16 @@ architecture alu_arch of ALU is
 				--CASE mult
 				when "0010" =>
 					-- do signed multiplication and store higher bits in HI and lwoer bits in LO
-					multiplication_res := std_logic_vector(signed(data_A) * signed(data_B));
+					multiplication_res <= std_logic_vector(signed(data_A) * signed(data_B));
 					LO <= multiplication_res(31 downto 0);
 					HI <= multiplication_res(63 downto 32);
 
 				--CASE div
 				when "0011" =>
 					-- do signed division and assign higher bits to remainder
-					division_res := std_logic_vector(signed(data_A) / signed(data_B));
+					division_res <= std_logic_vector(signed(data_A) / signed(data_B));
 					--division_remainer := std_logic_vector(signed(data_A) mod signed(data_B));
-					division_remainer := std_logic_vector(signed(data_A) rem signed(data_B));
+					division_remainer <= std_logic_vector(signed(data_A) rem signed(data_B));
 					LO <= division_res;
 					HI <= division_remainer;
 
@@ -178,7 +172,7 @@ architecture alu_arch of ALU is
 				--First do sll and then assign 0's to bits 0 to 15
 				--Upper immediate will be provided in data_A
 				when "1011" =>
-					lui_temp := to_stdlogicvector(to_bitvector(data_A) sll 16);
+					lui_temp <= to_stdlogicvector(to_bitvector(data_A) sll 16);
 					--lui_temp(15 downto 0) <= '0000000000000000';
 					intermediate_result <= lui_temp;
 
@@ -209,9 +203,7 @@ architecture alu_arch of ALU is
 
 			end case;
 
-		end process;
-
 		RESULT <= intermediate_result;
 		ZERO <= intermediate_zero;
 
-	end architecture;
+	end alu_arch;
