@@ -47,9 +47,9 @@ entity EX-MEM_STAGE_REGS is
     destinarion_reg_RD_out: out std_logic_vector(4 downto 0)
   );
 
-end entity EX-MEM_STAGE_REGS;
+end EX-MEM_STAGE_REGS;
 
-architecture exmemstage of EX_MEM_STAGE is
+architecture exmemstage of EX-MEM_STAGE_REGS is
 
     --Registers necessary for storing the values from previosu stage (EX) and pass them to next stage (MEM)
     --There registers contain both DATA and CONTROL values.
@@ -77,7 +77,7 @@ architecture exmemstage of EX_MEM_STAGE is
 
       EX_MEM_STAGE_PROC: process(clk)
       begin
-        rising_edge(clk) then
+        if rising_edge(clk) then
 
           --Assigning outputs from the saved registers
           --OUTPUTS FROM STAGE
