@@ -62,7 +62,12 @@ end MEM-WB_STAGE_REGS;
       MEM_WB_STAGE_PROC: process(clk)
       begin
         if rising_edge(clk) then
-
+          --Writing registers to output
+          write_reg_out <= pipereg_write_reg;
+          mem_to_reg_out <= pipereg_mem_to_reg;
+          data_from_MEM_out <= pipereg_data_from_MEM;
+          data_from_ALU_out <= pipereg_data_from_ALU;
+          zero_from_ALU_out <= pipereg_zero_from_ALU;
+          destinarion_reg_RD_out <= pipereg_destinarion_reg_RD;
         end if;
-
   end memwbstage;
