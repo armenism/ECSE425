@@ -7,7 +7,7 @@
 -- Hence this module is repsonsible to hold registers to hold values from EX stage and pass thos values to next stage (MEM)
 
 --OUTPUT from this module will also be used for forwarding
-entity EX-MEM_STAGE_REGS is
+entity EX_MEM is
 
   port(
     clk : in std_logic;
@@ -47,9 +47,9 @@ entity EX-MEM_STAGE_REGS is
     destinarion_reg_RD_out: out std_logic_vector(4 downto 0)
   );
 
-end EX-MEM_STAGE_REGS;
+end EX_MEM;
 
-architecture exmemstage of EX-MEM_STAGE_REGS is
+architecture exmemstage of EX_MEM is
 
     --Registers necessary for storing the values from previosu stage (EX) and pass them to next stage (MEM)
     --There registers contain both DATA and CONTROL values.
