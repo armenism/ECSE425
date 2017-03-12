@@ -37,11 +37,32 @@ entity MEM-WB_STAGE_REGS is
     destinarion_reg_RD_out: out std_logic_vector(4 downto 0)
 
   );
+end MEM-WB_STAGE_REGS;
 
-  architecture memwbstage of WB_STAGE_REGS is
+  architecture memwbstage of MEM-WB_STAGE_REGS is
+
+    --Define registers here
+    signal pipereg_write_reg : std_logic;
+    signal pipereg_mem_to_reg : std_logic;
+    signal pipereg_data_from_MEM: std_logic_vector(31 downto 0);
+    signal pipereg_data_from_ALU: std_logic_vector(31 downto 0);
+    signal pipereg_zero_from_ALU: std_logic;
+    signal pipereg_destinarion_reg_RD: std_logic_vector(4 downto 0);
 
     begin
 
-    end memwbstage;
+      --Assign inputs to registers
+      pipereg_write_reg <= write_reg;
+      pipereg_mem_to_reg <= mem_to_reg;
+      pipereg_data_from_MEM <= data_from_MEMs;
+      pipereg_data_from_ALU <= data_from_ALU;
+      pipereg_zero_from_ALU <= zero_from_ALU;
+      pipereg_destinarion_reg_RD <= destinarion_reg_RD;
 
-end MEM-WB_STAGE_REGS;
+      MEM_WB_STAGE_PROC: process(clk)
+      begin
+        if rising_edge(clk) then
+
+        end if;
+
+  end memwbstage;
