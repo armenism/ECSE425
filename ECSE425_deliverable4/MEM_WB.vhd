@@ -6,7 +6,7 @@
 -- Outputs the data from memory, the ALU result and the control signals that were given at input
 -- from previous EX-MEM stage regs
 
-entity MEM-WB_STAGE_REGS is
+entity MEM_WB is
   port(
 
     clk : in std_logic;
@@ -37,9 +37,9 @@ entity MEM-WB_STAGE_REGS is
     destinarion_reg_RD_out: out std_logic_vector(4 downto 0)
 
   );
-end MEM-WB_STAGE_REGS;
+end MEM_WB;
 
-  architecture memwbstage of MEM-WB_STAGE_REGS is
+  architecture memwbstage of MEM_WBis
 
     --Define registers here
     signal pipereg_write_reg : std_logic;
