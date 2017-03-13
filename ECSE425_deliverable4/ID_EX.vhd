@@ -6,6 +6,7 @@ USE ieee.numeric_std.all;
 ENTITY ID_EX IS
 	PORT (
 		clock					: in std_logic;
+		clr : in std_logic;
 
 		--Data inputs
 		InstrD_in			: in std_logic_vector(31 downto 0);
@@ -52,7 +53,7 @@ ENTITY ID_EX IS
 		BranchD_out			: out std_logic;
 		ALUControlD_out	: out std_logic_vector(3 downto 0);
 		ALUSRCD_out			: out std_logic;
-		RegDstD_out			: out std_logic;
+		RegDstD_out			: out std_logic
 		
 		--Other control outputs (probably not needed)
 --		LUI_out				: out std_logic;

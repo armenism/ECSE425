@@ -23,7 +23,7 @@ begin
 	temp_PCF_in <= PCF_in;
 end process fetch;
 
-latch: process(clock)
+latch: process(clock, IF_ID_write)
 begin
 	if(rising_edge(clock) AND IF_ID_write = '1' )then
 		InstrD_out <= temp_InstrD_in;
