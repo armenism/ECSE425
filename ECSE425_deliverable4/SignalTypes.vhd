@@ -28,18 +28,23 @@ package signal_types is
                         alu_srl,
                         alu_sra);
 
+  -- Type necessary to contain signals necessary for EX stage control
   type EX_CTRL_SIGS is
 	record
 		ALU_control_op : alu_operation;
 	end record;
 
+  -- Type necessary to contain signals necessary for WB stage control
 	type WB_CTRL_SIGS is
 		record
-    --TODO define signales needed for WB stage
-		end record;
+    write_to_register: STD_LOGIC;
+	  end record;
 
+  -- Type necessary to contain signals necessary for MEM stage control
 	type MEM_CTRL_SIGS is
 		record
-			--TODO define signales needed for MEM stage
+    read_from_memory: std_logic;
+    write_to_memory: std_logic;
 		end record;
+
 end signal_types;
