@@ -73,9 +73,10 @@ entity ALU is
 
 	port(
 		clk: in std_logic;										--clock
-		ALU_CONTROL_CODE: in std_logic_vector(3 downto 0);		--control code for ALU OP from ALU Control
+		ALU_CONTROL_CODE: in std_logic_vector(3 downto 0);--control code for ALU OP from ALU Control
 		data_A : in std_logic_vector(31 downto 0);				--RS reg
 		data_B : in std_logic_vector(31 downto 0);				--RT reg
+		shamt: in IN  STD_LOGIC_VECTOR (31 DOWNTO 0);     --Will be easier to have a dedicated shift amount
 		ZERO : out std_logic;									--zero out
 		RESULT : out std_logic_vector(31 downto 0) 		--result out
 	);
@@ -86,122 +87,128 @@ architecture alu_arch of ALU is
 
 	signal intermediate_result: std_logic_vector(31 downto 0);
 	signal intermediate_zero: std_logic;
-
 	--Need a HI and LO registers to keep the 64 bit result from multiplication and division
 	signal HI: std_logic_vector(31 downto 0);
 	signal LO: std_logic_vector(31 downto 0);
 
-	--Var necessary to 32x32 bit mult and 32/32 bit div
-	signal multiplication_res : std_logic_vector(63 downto 0);
-
-	--Var necessary to 32/32 bit div and remained for lower bits
-	signal division_res : std_logic_vector(32 downto 0);
-	signal division_remainer : std_logic_vector(32 downto 0);
-
-	--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
-	--More on slt check here: http://web.cse.ohio-state.edu/~teodores/download/teaching/cse675.au08/Cse675.02.F.ALUDesign_part2.pdf
-
-	signal lui_temp : std_logic_vector(32 downto 0);
 
 	begin
 
-			intermediate_zero<='0';
+	ALU_Process : process (data_A, data_B, ALU_CONTROL_CODE, shamt)
 
-			case ALU_CONTROL_CODE is:
+		--Var necessary to 32x32 bit mult and 32/32 bit div
+		variable multiplication_res : std_logic_vector(63 downto 0);
 
-				--CASE add,addi
-				when "0000" =>
-					intermediate_result <= std_logic_vector(signed(data_A) + signed(data_B));
+		--Var necessary to 32/32 bit div and remained for lower bits
+		variable division_res : std_logic_vector(32 downto 0);
+		variable division_remainer : std_logic_vector(32 downto 0);
 
-				--CASE sub
-				when "0001" =>
-					intermediate_result <= std_logic_vector(signed(data_A) - signed(data_B));
+		--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
+		--More on slt check here: http://web.cse.ohio-state.edu/~teodores/download/teaching/cse675.au08/Cse675.02.F.ALUDesign_part2.pdf
 
-				--CASE mult
-				when "0010" =>
-					-- do signed multiplication and store higher bits in HI and lwoer bits in LO
-					multiplication_res <= std_logic_vector(signed(data_A) * signed(data_B));
-					LO <= multiplication_res(31 downto 0);
-					HI <= multiplication_res(63 downto 32);
+		variable lui_temp : std_logic_vector(32 downto 0);
 
-				--CASE div
-				when "0011" =>
-					-- do signed division and assign higher bits to remainder
-					division_res <= std_logic_vector(signed(data_A) / signed(data_B));
-					--division_remainer := std_logic_vector(signed(data_A) mod signed(data_B));
-					division_remainer <= std_logic_vector(signed(data_A) rem signed(data_B));
-					LO <= division_res;
-					HI <= division_remainer;
+		begin
 
-				--CASE slt,slti
-				when "0100" =>
-					if (signed(data_A) < signed(data_B)) then
-						intermediate_result <= '00000000000000000000000000000001';
-					else
-						intermediate_result <= '00000000000000000000000000000000';
-					end if;
+				intermediate_zero<='0';
 
-				--CASE and,andi
-				when "0101" =>
-					intermediate_result <= data_A and data_B;
+				case ALU_CONTROL_CODE is:
 
-				--CASE or,ori
-				when "0110" =>
-					intermediate_result <= data_A or data_B;
+					--CASE add,addi
+					when "0000" =>
+						intermediate_result <= std_logic_vector(signed(data_A) + signed(data_B));
 
-				--CASE nor
-				when "0111" =>
-					intermediate_result <= data_A nor data_B;
+					--CASE sub
+					when "0001" =>
+						intermediate_result <= std_logic_vector(signed(data_A) - signed(data_B));
 
-				--CASE xor, xori
-				when "1000" =>
-					intermediate_result <= data_A xor data_B;
+					--CASE mult
+					when "0010" =>
+						-- do signed multiplication and store higher bits in HI and lwoer bits in LO
+						multiplication_res := std_logic_vector(signed(data_A) * signed(data_B));
+						LO <= multiplication_res(31 downto 0);
+						HI <= multiplication_res(63 downto 32);
 
-				--CASE mfhi
-				--For purposes of moving the higher bits of mult or div onto geenral purpose reg
-				when "1001" =>
-					intermediate_result <= LO;
+					--CASE div
+					when "0011" =>
+						-- do signed division and assign higher bits to remainder
+						division_res := std_logic_vector(signed(data_A) / signed(data_B));
+						--division_remainer := std_logic_vector(signed(data_A) mod signed(data_B));
+						division_remainer := std_logic_vector(signed(data_A) rem signed(data_B));
+						LO <= division_res;
+						HI <= division_remainer;
 
-				--CASE mflo
-				--For purposes of moving the lower bits of mult or div onto geenral purpose reg
-				when "1010" =>
-					intermediate_result <= HI;
-
-				--CASE lui
-				--Shifts the immediate value to left by 16 bits and lower bits become all 0's
-				--First do sll and then assign 0's to bits 0 to 15
-				--Upper immediate will be provided in data_A
-				when "1011" =>
-					lui_temp <= to_stdlogicvector(to_bitvector(data_A) sll 16);
-					--lui_temp(15 downto 0) <= '0000000000000000';
-					intermediate_result <= lui_temp;
-
-				--CASE sll
-				-- Shift amounts specified in data_B (no shamt signal incoming to ALU)
-				when "1100" =>
-					intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sll to_integer(signed(data_B)));
-
-				--CASE slr
-				when "1101" =>
-					intermediate_result <= to_stdlogicvector(to_bitvector(data_A) slr to_integer(signed(data_B)));
-
-				--CASE sra
-				when "1110" =>
-					intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sra to_integer(signed(data_B)));
-
-				--CASE eq (needed to produce zero signal for beq, bne)
-				when "1111" =>
-					if (signed(data_A) = signed(data_B))  then
-						intermediate_zero <= '1';
+					--CASE slt,slti
+					when "0100" =>
+						if (signed(data_A) < signed(data_B)) then
+							intermediate_result <= '00000000000000000000000000000001';
 						else
-						intermediate_zero <= '0';
-					end if;
+							intermediate_result <= '00000000000000000000000000000000';
+						end if;
 
-				when others =>
-					intermediate_zero<='0';
-					c <= 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+					--CASE and,andi
+					when "0101" =>
+						intermediate_result <= data_A and data_B;
 
-			end case;
+					--CASE or,ori
+					when "0110" =>
+						intermediate_result <= data_A or data_B;
+
+					--CASE nor
+					when "0111" =>
+						intermediate_result <= data_A nor data_B;
+
+					--CASE xor, xori
+					when "1000" =>
+						intermediate_result <= data_A xor data_B;
+
+					--CASE mfhi
+					--For purposes of moving the higher bits of mult or div onto geenral purpose reg
+					when "1001" =>
+						intermediate_result <= LO;
+
+					--CASE mflo
+					--For purposes of moving the lower bits of mult or div onto geenral purpose reg
+					when "1010" =>
+						intermediate_result <= HI;
+
+					--CASE lui
+					--Shifts the immediate value to left by 16 bits and lower bits become all 0's
+					--First do sll and then assign 0's to bits 0 to 15
+					--Upper immediate will be provided in data_A
+					when "1011" =>
+						lui_temp := to_stdlogicvector(to_bitvector(data_A) sll 16);
+						--lui_temp(15 downto 0) <= '0000000000000000';
+						intermediate_result <= lui_temp;
+
+					--CASE sll
+					-- Shift amounts specified in data_B (no shamt signal incoming to ALU)
+					when "1100" =>
+						intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sll to_integer(signed(data_B)));
+
+					--CASE slr
+					when "1101" =>
+						intermediate_result <= to_stdlogicvector(to_bitvector(data_A) slr to_integer(signed(data_B)));
+
+					--CASE sra
+					when "1110" =>
+						intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sra to_integer(signed(data_B)));
+
+					--CASE eq (needed to produce zero signal for beq, bne)
+					when "1111" =>
+						if (signed(data_A) = signed(data_B))  then
+							intermediate_zero <= '1';
+							else
+							intermediate_zero <= '0';
+						end if;
+
+					when others =>
+						intermediate_zero<='0';
+						c <= 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+
+				end case;
+
+		end process;
 
 		RESULT <= intermediate_result;
 		ZERO <= intermediate_zero;
