@@ -21,7 +21,12 @@ entity EX_STAGE is
 
     program_counter: in std_logic_vector (31 downto 0);
     sign_extended_IMM: in in std_logic_vector (31 downto 0);
-    destination_reg_RD: in std_logic_vector (4 downto 0)
+    destination_reg_RD: in std_logic_vector (4 downto 0);
 
-    --Control signals to current and further stages
+    --Control signals to current stage:
+    EX_STAGE_CONTROL_SIGNALS: in EX_CTRL_SIGS;
+    --Control signals to be passed to further stages:
+		MEM_STAGE_CONTROL_SIGNALS: in MEM_CTRL_SIGS;
+		WB_STAGE_CONTROL_SIGNALS: IN WB_CTRL_SIGS;
+
     );

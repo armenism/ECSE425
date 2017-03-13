@@ -28,4 +28,18 @@ package signal_types is
                         alu_srl,
                         alu_sra);
 
-END signal_types;
+  type EX_CTRL_SIGS is
+	record
+		ALU_control_op : alu_operation;
+	end record;
+
+	type WB_CTRL_SIGS is
+		record
+    --TODO define signales needed for WB stage
+		end record;
+
+	type MEM_CTRL_SIGS is
+		record
+			--TODO define signales needed for MEM stage
+		end record;
+end signal_types;
