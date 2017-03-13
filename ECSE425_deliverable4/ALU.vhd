@@ -112,7 +112,7 @@ architecture alu_arch of ALU is
 
 				intermediate_zero<='0';
 
-				case ALU_CONTROL_CODE is:
+				case ALU_CONTROL_CODE is
 
 					--CASE add,addi
 					when "0000" =>
