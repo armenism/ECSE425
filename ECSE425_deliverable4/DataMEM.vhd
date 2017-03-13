@@ -1,4 +1,10 @@
 --Adapted from Example 12-15 of Quartus Design and Synthesis handbook
+
+
+-- HAS TO BE MODIFIED BECAUSE WE WILL BE NEEDIGN TO SAVE 32 BIT DATA FROM ALU or data_B (Rs)
+
+--TODO: make byte compatible to write 32 bits in 4 consecutive byte entries
+
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
