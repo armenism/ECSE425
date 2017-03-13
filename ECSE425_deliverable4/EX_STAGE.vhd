@@ -30,18 +30,88 @@ entity EX_STAGE is
     EX_STAGE_CONTROL_SIGNALS: in EX_CTRL_SIGS;
     --Control signals to be passed to further stages:
 		MEM_STAGE_CONTROL_SIGNALS: in MEM_CTRL_SIGS;
-		WB_STAGE_CONTROL_SIGNALS: IN WB_CTRL_SIGS;
+		WB_STAGE_CONTROL_SIGNALS: in WB_CTRL_SIGS;
 
     --STAGE OUTPUTS
     EX_ALU_result_out: out std_logic_vector (31 downto 0);
     EX_write_data_out: out std_logic_vector (31 downto 0);
     EX_destination_reg_RD_out : out std_logic_vector (4 downto 0);
     --Control signals to be passed to further stages:
-    MEM_STAGE_CONTROL_SIGNALS_out: in MEM_CTRL_SIGS;
-    WB_STAGE_CONTROL_SIGNALS_out: IN WB_CTRL_SIGS
+    MEM_STAGE_CONTROL_SIGNALS_out: out MEM_CTRL_SIGS;
+    WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS
+
     );
 
 architecture arch of EX_STAGE is
+
+  ------ALU component
+  component ALU is
+    PORT(
+      ALU_CONTROL_CODE: in alu_operation; --> on of the types we defined in types, contains a subset of signals for ALU
+      data_A: in std_logic_vector (31 DOWNTO 0); --when shift operation, ALU shifts B by shamt
+      data_B: in std_logic_vector (31 DOWNTO 0);
+      shamt: in std_logic_vector (31 DOWNTO 0);
+      RESULT: out std_logic_vector (31 DOWNTO 0)
+    );
+
+  END component;
+  ------
+
+  --Intermediate buffer signals
+  signal shamt_for_alu : std_logic_vector (31 DOWNTO 0);
+  signal ALU_data_A : std_logic_vector (31 DOWNTO 0);
+  signal ALU_data_B : std_logic_vector (31 DOWNTO 0);
+  signal ALU_res : std_logic_vector (31 DOWNTO 0);
+  signal ALU_res_to_mem : std_logic_vector (31 DOWNTO 0);
+
   begin
+
+    --Might need to manipulate signals here (adding multiplexors) according to the instruction (not yet)
+    shamt_for_alu <= x"000000" & "000" & EX_shift_amount; --Shift amount for the ALU coming from the ID stage (sra,sll,sra) BUT (in ALU, lui hardcoded 16 bit shift)
+    ALU_data_A <= EX_data_from_RS;
+    ALU_data_B <= EX_data_from_RT;
+    ALU_res_to_mem <= ALU_res;
+
+    ALU_isntance : ALU
+		PORT MAP(
+      ALU_CONTROL_CODE => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
+			data_A => ALU_data_A,
+			data_B => ALU_data_B,
+			shamt => shamt_for_alu,
+      RESULT => ALU_res
+		);
+
+    ------Actual stage process
+    EX_STAGE_PROCESS : process (clk, reset)
+  	begin
+
+      --Resetting all output to 0
+  		if reset = '1' then
+
+  			EX_ALU_result_out <= '00000000000000000000000000000000';
+  			EX_write_data_out <= '00000000000000000000000000000000';
+  			EX_destination_reg_RD_out <= '00000';
+        MEM_STAGE_CONTROL_SIGNALS_out <= ('0','0');
+        WB_STAGE_CONTROL_SIGNALS_out <= (OTHERS => '0');
+
+      --At rising edge, assign all the signals to output
+  		elsif rising_edge(clk) then
+
+  			if rdy = '1' then
+          --Forward control signals from ID to MEM though current (EX) stage
+          MEM_STAGE_CONTROL_SIGNALS_out <= MEM_STAGE_CONTROL_SIGNALS;
+          WB_STAGE_CONTROL_SIGNALS_out <= WB_STAGE_CONTROL_SIGNALS;
+
+          --Assign all the computed signals
+  				EX_ALU_result_out <= ALU_res_to_mem;
+  				EX_write_data_out <= EX_data_from_RT;
+  				EX_destination_reg_RD_out <= EX_destination_reg_RD;
+
+  			end if;
+
+  		end if;
+
+  	end process;
+    ------
 
   end arch;
