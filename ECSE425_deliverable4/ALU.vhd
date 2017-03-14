@@ -72,12 +72,11 @@ USE ieee.numeric_std.all;
 entity ALU is
 
 	port(
-		clk: in std_logic;										--clock
 		ALU_CONTROL_CODE: in std_logic_vector(3 downto 0);--control code for ALU OP from ALU Control
 		data_A : in std_logic_vector(31 downto 0);				--RS reg
 		data_B : in std_logic_vector(31 downto 0);				--RT reg
 		shamt: in IN  STD_LOGIC_VECTOR (31 DOWNTO 0);     --Will be easier to have a dedicated shift amount
-		ZERO : out std_logic;									--zero out
+		--ZERO : out std_logic;									--zero out
 		RESULT : out std_logic_vector(31 downto 0) 		--result out
 	);
 
@@ -177,22 +176,22 @@ architecture alu_arch of ALU is
 					--First do sll and then assign 0's to bits 0 to 15
 					--Upper immediate will be provided in data_A
 					when "1011" =>
-						lui_temp := to_stdlogicvector(to_bitvector(data_A) sll 16);
+						lui_temp := to_stdlogicvector(to_bitvector(data_B) sll 16);
 						--lui_temp(15 downto 0) <= '0000000000000000';
 						intermediate_result <= lui_temp;
 
 					--CASE sll
 					-- Shift amounts specified in data_B (no shamt signal incoming to ALU)
 					when "1100" =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sll to_integer(signed(data_B)));
+						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sll to_integer(signed(shamt)));
 
 					--CASE slr
 					when "1101" =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_A) slr to_integer(signed(data_B)));
+						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) slr to_integer(signed(shamt)));
 
 					--CASE sra
 					when "1110" =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_A) sra to_integer(signed(data_B)));
+						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sra to_integer(signed(shamt)));
 
 					--CASE eq (needed to produce zero signal for beq, bne)
 					when "1111" =>
@@ -211,6 +210,6 @@ architecture alu_arch of ALU is
 		end process;
 
 		RESULT <= intermediate_result;
-		ZERO <= intermediate_zero;
+		--ZERO <= intermediate_zero;
 
 	end alu_arch;
