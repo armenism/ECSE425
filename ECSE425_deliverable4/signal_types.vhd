@@ -21,6 +21,7 @@ package signal_types is
                         alu_andi,
                         alu_or,
 								        alu_ori,
+                        alu_nor,
                         alu_xor,
                         alu_xori,
                         alu_mfhi,

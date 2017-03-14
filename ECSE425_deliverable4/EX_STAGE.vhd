@@ -91,7 +91,7 @@ architecture arch of EX_STAGE is
     --Multiplexor for data A input to ALU, can be normal data from RS register or target address to jal
     ALU_data_A <= x"00000004" when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RS;
 
-    --Multiplexor for data B input to ALU, can be normal data from RT register or Immediate value for I type and address operations or PC
+    --Multiplexor for data B input to ALU, can be normal data from RT register or Immediate value for I type (addi, ori, xori etc) and address operations or PC
     ALU_data_B <= EX_sign_extended_IMM when in_ctrl_EX.use_imm = '1' else EX_program_counter when in_ctrl_EX.jump_and_link = '1' else EX_data_from_RT;
 
     --Multiplexor for output of the stage from ALU

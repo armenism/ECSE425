@@ -1,5 +1,7 @@
 -- To avoid using clock in ALU, carry out multiplication and division in this standalone module.
 -- Will take two 32 bit data params and output a 64 bit long
+--More on division and multiplication for ALU check here: https://www.d.umn.edu/~gshute/logic/multiplication-division.xhtml
+--More on slt check here: http://web.cse.ohio-state.edu/~teodores/download/teaching/cse675.au08/Cse675.02.F.ALUDesign_part2.pdf
 
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
