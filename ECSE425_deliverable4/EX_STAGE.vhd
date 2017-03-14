@@ -83,7 +83,6 @@ architecture arch of EX_STAGE is
 
   begin
 
-    --Might need to manipulate signals here (adding multiplexors) according to the instruction (not yet)
     -------------------------------------------------------------MUXES
     --Multiplexor for shift amount: no needed since if we do lui, 16 is hardcoded in ALU already.
     shamt_for_alu <= x"000000" & "000" & EX_shift_amount; --Shift amount for the ALU coming from the ID stage (sra,sll,sra) BUT (in ALU, lui hardcoded 16 bit shift)
@@ -92,10 +91,10 @@ architecture arch of EX_STAGE is
     ALU_data_A <= x"00000004" when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RS;
 
     --Multiplexor for data B input to ALU, can be normal data from RT register or Immediate value for I type (addi, ori, xori etc) and address operations or PC
-    ALU_data_B <= EX_sign_extended_IMM when in_ctrl_EX.use_imm = '1' else EX_program_counter when in_ctrl_EX.jump_and_link = '1' else EX_data_from_RT;
+    ALU_data_B <= EX_sign_extended_IMM when EX_STAGE_CONTROL_SIGNALS.use_imm = '1' else EX_program_counter when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RT;
 
-    --Multiplexor for output of the stage from ALU
-    ALU_res_to_mem <= ALU_res;
+    --Multiplexor for output of the stage from ALU. If control signals for EX stage are on for mflo or mfhi, route the high or low bits to output, else, regular ALU output is router to stage output
+    ALU_out_to_MEM <= mult_div_low_bits	WHEN EX_STAGE_CONTROL_SIGNALS.mfhi = '1' ELSE mult_div_hi_bits	WHEN EX_STAGE_CONTROL_SIGNALS.mfhi = '1' ELSE ALU_result;
 
     -------------------------------------------------------------PORTMAPS
     mult_div : standalone_multi_div_unit

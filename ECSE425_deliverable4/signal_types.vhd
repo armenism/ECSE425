@@ -49,6 +49,9 @@ package signal_types is
 			jump_and_link	: std_logic;
 			ALU_control_op : alu_operation;
       multdiv: std_logic;
+			mfhi: std_logic;
+			mflo: std_logic;
+
 		end record;
 
   -- Type necessary to contain signals necessary for WB stage control
