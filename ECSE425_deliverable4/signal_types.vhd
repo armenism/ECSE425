@@ -2,6 +2,8 @@
 --Intended to make signal passing easier to each module down the pipe, without defining
 --many signals in each module.
 
+--ID will be responsible to set all these control signals according to the decoding of the instruction
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;

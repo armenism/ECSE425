@@ -44,6 +44,7 @@ entity EX_STAGE is
 
 architecture arch of EX_STAGE is
 
+  -------------------------------------------------------------COMPONENTS
   ------ALU component
   component ALU is
     PORT(
@@ -55,7 +56,7 @@ architecture arch of EX_STAGE is
     );
 
   END component;
-  ------
+  -------------------------------------------------------------SIGNALS
 
   --Intermediate buffer signals
   signal shamt_for_alu : std_logic_vector (31 DOWNTO 0);
@@ -64,10 +65,11 @@ architecture arch of EX_STAGE is
   signal ALU_res : std_logic_vector (31 DOWNTO 0);
   signal ALU_res_to_mem : std_logic_vector (31 DOWNTO 0);
 
+
   begin
 
     --Might need to manipulate signals here (adding multiplexors) according to the instruction (not yet)
-    -------------------------------------------------------------
+    -------------------------------------------------------------MUXES
     --Multiplexor for shift amount: no needed since if we do lui, 16 is hardcoded in ALU already.
     shamt_for_alu <= x"000000" & "000" & EX_shift_amount; --Shift amount for the ALU coming from the ID stage (sra,sll,sra) BUT (in ALU, lui hardcoded 16 bit shift)
 
@@ -80,7 +82,7 @@ architecture arch of EX_STAGE is
     --Multiplexor for output of the stage from ALU (not needed, all operations such as mfhi and mflo are done in ALU directly)
     ALU_res_to_mem <= ALU_res;
 
-    -------------------------------------------------------------
+    -------------------------------------------------------------PORTMAPS
     ALU_instance : ALU
 		PORT MAP(
       ALU_CONTROL_CODE => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
