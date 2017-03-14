@@ -89,15 +89,23 @@ architecture arch of EX_STAGE is
     shamt_for_alu <= x"000000" & "000" & EX_shift_amount; --Shift amount for the ALU coming from the ID stage (sra,sll,sra) BUT (in ALU, lui hardcoded 16 bit shift)
 
     --Multiplexor for data A input to ALU, can be normal data from RS register or target address to jal
-    ALU_data_A <= x"0000000-4" when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RS;
+    ALU_data_A <= x"00000004" when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RS;
 
     --Multiplexor for data B input to ALU, can be normal data from RT register or Immediate value for I type and address operations or PC
     ALU_data_B <= EX_sign_extended_IMM when in_ctrl_EX.use_imm = '1' else EX_program_counter when in_ctrl_EX.jump_and_link = '1' else EX_data_from_RT;
 
-    --Multiplexor for output of the stage from ALU (not needed, all operations such as mfhi and mflo are done in ALU directly)
+    --Multiplexor for output of the stage from ALU
     ALU_res_to_mem <= ALU_res;
 
     -------------------------------------------------------------PORTMAPS
+    mult_div : standalone_multi_div_unit
+    PORT MAP(
+      OPERAND_A => EX_data_from_RS,
+      OPERAND_B => EX_data_from_RT,
+      OPERATION => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
+      MULT_DIV_RESULT => mult_div_res
+    );
+
     ALU_instance : ALU
 		PORT MAP(
       ALU_CONTROL_CODE => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
@@ -106,6 +114,30 @@ architecture arch of EX_STAGE is
 			shamt => shamt_for_alu,
       RESULT => ALU_res
 		);
+
+    -------------------------------------------------------------PROCESSES
+    ------Process intended for mfhi mflo operations, which involve div and mult operations
+    ------to be able to get higher or lower bits of the result to a general purpose register
+    MFHI_MFLO_PROCESS : process (clk, reset)
+    begin
+
+      if reset = '1' then
+
+        mult_div_low_bits <= '00000000000000000000000000000000';
+        mult_div_hi_bits <= '00000000000000000000000000000000';
+
+      elsif rising_edge(clk) then
+
+        if EX_STAGE_CONTROL_SIGNALS.multdiv = '1' then
+
+          mult_div_low_bits <= mult_div_res(31 DOWNTO 0);
+          mult_div_hi_bits <= mult_div_res(63 DOWNTO 32);
+
+        end if;
+
+      end if;
+
+    end process;
 
     ------Actual stage process
     EX_STAGE_PROCESS : process (clk, reset)
