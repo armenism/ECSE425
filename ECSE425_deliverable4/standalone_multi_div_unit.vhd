@@ -31,8 +31,8 @@ architecture arch OF standalone_multi_div_unit is
 
         elsif OPERATION = alu_div then
 
-    			MULT_DIV_RESULT(31 downto 0) <= std_logic_vector( SIGNED(source_A) / SIGNED(source_B));
-          MULT_DIV_RESULT(63 downto 32) <= std_logic_vector( SIGNED(source_A) mod SIGNED(source_B));
+    			MULT_DIV_RESULT(31 downto 0) <= std_logic_vector( signed(source_A) / signed(source_B));
+          MULT_DIV_RESULT(63 downto 32) <= std_logic_vector( signed(source_A) mod signed(source_B));
 
     		end if;
 

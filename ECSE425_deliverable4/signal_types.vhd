@@ -37,22 +37,22 @@ package signal_types is
 
 	type ID_CTRL_SIGS is
 		record
-			branch 		: STD_LOGIC;
-			jr		 		: STD_LOGIC;
-			zero_extend : STD_LOGIC;
+			branch 		: std_logic;
+			jr		 		: std_logic;
+			zero_extend : std_logic;
 		end record;
 
 	type EX_CTRL_SIGS is
 		record
-			use_imm		: STD_LOGIC;
-			jump_and_link	: STD_LOGIC;
+			use_imm		: std_logic;
+			jump_and_link	: std_logic;
 			ALU_control_op : alu_operation;
 		end record;
 
   -- Type necessary to contain signals necessary for WB stage control
 	type WB_CTRL_SIGS is
 		record
-    write_to_register: STD_LOGIC;
+    write_to_register: std_logic;
 	  end record;
 
   -- Type necessary to contain signals necessary for MEM stage control

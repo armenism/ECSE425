@@ -45,9 +45,20 @@ entity EX_STAGE is
 architecture arch of EX_STAGE is
 
   -------------------------------------------------------------COMPONENTS
+
+  ------Arithmetical multiplication and division component
+  component standalone_multi_div_unit is
+    port(
+      OPERAND_A: in std_logic_vector (31 downto 0);
+      OPERAND_B: in	 std_logic_vector (31 downto 0);
+      OPERATION: in alu_operation; -->mult, div only to be used here from alu instruction types
+      MULT_DIV_RESULT: out std_logic_vector (63 downto 0)
+    );
+  end component;
+
   ------ALU component
   component ALU is
-    PORT(
+    port(
       ALU_CONTROL_CODE: in alu_operation; --> on of the types we defined in types, contains a subset of signals for ALU
       data_A: in std_logic_vector (31 DOWNTO 0); --when shift operation, ALU shifts B by shamt
       data_B: in std_logic_vector (31 DOWNTO 0);
@@ -55,7 +66,7 @@ architecture arch of EX_STAGE is
       RESULT: out std_logic_vector (31 DOWNTO 0)
     );
 
-  END component;
+  end component;
   -------------------------------------------------------------SIGNALS
 
   --Intermediate buffer signals
@@ -65,6 +76,10 @@ architecture arch of EX_STAGE is
   signal ALU_res : std_logic_vector (31 DOWNTO 0);
   signal ALU_res_to_mem : std_logic_vector (31 DOWNTO 0);
 
+  --Intermediate multiplication signals, high bits and low bits signals for mflo and mfhi operations (since decoupled from ALU now)
+  signal mult_div_low_bits: std_logic_vector (31 DOWNTO 0);
+  signal mult_div_hi_bits: std_logic_vector (31 DOWNTO 0);
+  signal mult_div_res: std_logic_vector (63 DOWNTO 0); --> long vector for result after multiplication/division operation. Needs to be routed to output of this stage (instead of ALU) if mflo or mfhi op was decoded
 
   begin
 
@@ -74,10 +89,10 @@ architecture arch of EX_STAGE is
     shamt_for_alu <= x"000000" & "000" & EX_shift_amount; --Shift amount for the ALU coming from the ID stage (sra,sll,sra) BUT (in ALU, lui hardcoded 16 bit shift)
 
     --Multiplexor for data A input to ALU, can be normal data from RS register or target address to jal
-    ALU_data_A <= x"0000000-4" WHEN EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' ELSE EX_data_from_RS;
+    ALU_data_A <= x"0000000-4" when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RS;
 
     --Multiplexor for data B input to ALU, can be normal data from RT register or Immediate value for I type and address operations or PC
-    ALU_data_B <= EX_sign_extended_IMM WHEN in_ctrl_EX.use_imm = '1' ELSE EX_program_counter WHEN in_ctrl_EX.jump_and_link = '1' ELSE EX_data_from_RT;
+    ALU_data_B <= EX_sign_extended_IMM when in_ctrl_EX.use_imm = '1' else EX_program_counter when in_ctrl_EX.jump_and_link = '1' else EX_data_from_RT;
 
     --Multiplexor for output of the stage from ALU (not needed, all operations such as mfhi and mflo are done in ALU directly)
     ALU_res_to_mem <= ALU_res;
