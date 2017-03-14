@@ -2,6 +2,8 @@
 --Intended to make signal passing easier to each module down the pipe, without defining
 --many signals in each module.
 
+--ID will be responsible to set all these control signals according to the decoding of the instruction
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -27,23 +29,23 @@ package signal_types is
                         alu_sll,
                         alu_srl,
                         alu_sra);
-								
+
 	type IF_CTRL_SIGS is
 		record
 		--TODO define signales needed for WB stage
 		end record;
-		
+
 	type ID_CTRL_SIGS is
 		record
 			branch 		: STD_LOGIC;
 			jr		 		: STD_LOGIC;
 			zero_extend : STD_LOGIC;
-		end record;		
-								
+		end record;
+
 	type EX_CTRL_SIGS is
 		record
-			select_imm		: STD_LOGIC;
-			jump_link	: STD_LOGIC;
+			use_imm		: STD_LOGIC;
+			jump_and_link	: STD_LOGIC;
 			ALU_control_op : alu_operation;
 		end record;
 
@@ -61,5 +63,3 @@ package signal_types is
 		end record;
 
 end signal_types;
-
-END signal_types;
