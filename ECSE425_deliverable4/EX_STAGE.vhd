@@ -67,12 +67,21 @@ architecture arch of EX_STAGE is
   begin
 
     --Might need to manipulate signals here (adding multiplexors) according to the instruction (not yet)
+    -------------------------------------------------------------
+    --Multiplexor for shift amount: no needed since if we do lui, 16 is hardcoded in ALU already.
     shamt_for_alu <= x"000000" & "000" & EX_shift_amount; --Shift amount for the ALU coming from the ID stage (sra,sll,sra) BUT (in ALU, lui hardcoded 16 bit shift)
-    ALU_data_A <= EX_data_from_RS;
-    ALU_data_B <= EX_data_from_RT;
+
+    --Multiplexor for data A input to ALU, can be normal data from RS register or target address to jal
+    ALU_data_A <= x"0000000-4" WHEN EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' ELSE EX_data_from_RS;
+
+    --Multiplexor for data B input to ALU, can be normal data from RT register or Immediate value for I type and address operations or PC
+    ALU_data_B <= EX_sign_extended_IMM WHEN in_ctrl_EX.use_imm = '1' ELSE EX_program_counter WHEN in_ctrl_EX.jump_and_link = '1' ELSE EX_data_from_RT;
+
+    --Multiplexor for output of the stage from ALU (not needed, all operations such as mfhi and mflo are done in ALU directly)
     ALU_res_to_mem <= ALU_res;
 
-    ALU_isntance : ALU
+    -------------------------------------------------------------
+    ALU_instance : ALU
 		PORT MAP(
       ALU_CONTROL_CODE => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
 			data_A => ALU_data_A,
