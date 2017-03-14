@@ -27,12 +27,25 @@ package signal_types is
                         alu_sll,
                         alu_srl,
                         alu_sra);
-
-  -- Type necessary to contain signals necessary for EX stage control
-  type EX_CTRL_SIGS is
-	record
-		ALU_control_op : alu_operation;
-	end record;
+								
+	type IF_CTRL_SIGS is
+		record
+		--TODO define signales needed for WB stage
+		end record;
+		
+	type ID_CTRL_SIGS is
+		record
+			branch 		: STD_LOGIC;
+			jr		 		: STD_LOGIC;
+			zero_extend : STD_LOGIC;
+		end record;		
+								
+	type EX_CTRL_SIGS is
+		record
+			select_imm		: STD_LOGIC;
+			jump_link	: STD_LOGIC;
+			ALU_control_op : alu_operation;
+		end record;
 
   -- Type necessary to contain signals necessary for WB stage control
 	type WB_CTRL_SIGS is
@@ -48,3 +61,5 @@ package signal_types is
 		end record;
 
 end signal_types;
+
+END signal_types;
