@@ -70,9 +70,11 @@ BEGIN
         wait until rising_edge(waitrequest);
         memwrite <= '0';
         memread <= '1';
+        
         wait until rising_edge(waitrequest);
         assert readdata = x"12" report "write unsuccessful" severity error;
         memread <= '0';
+        
         wait for clk_period;
         address <= 12;memread <= '1';
         wait until rising_edge(waitrequest);

@@ -70,31 +70,17 @@ architecture arch of MEM_STAGE is
 	signal intermediate_data_out : std_logic_vector (31 downto 0);
   --Memory module related signals
 
-
+  signal clock_for_memory: std_logic,
   signal address_for_memory: INTEGER RANGE 0 TO ram_size-1;
   signal data_read_from_memory: INTEGER RANGE 0 TO ram_size-1;
   signal data_to_write_to_memory: INTEGER RANGE 0 TO ram_size-1;
-  signal waitrequest_from_memory:  STD_LOGIC; --> DO SOMETHING WITH THIS
-
   signal do_mem_read: std_logic;
   signal do_mem_write: std_logic;
+  signal waitrequest_from_memory:  STD_LOGIC;
 
 begin
 
   -------------------------------------------------------------MUXES
-  -- Address for the memory must be BYTE addressable. We have from 0 to 32767 bytes. The ALU output containing
-  -- the address is a 32 bit address (at lw or sw operations). Truncate the address to use only the lower 15 bit.
-  -- Also, convert the 15 bit address onto an integer, since memory acccepts integer as address.
-  address_for_memory <= unsigned(ALU_output_from_EX(14 downto 0));
-
-  --Set signals according to the MEM control signals if its a write or a read
-  do_mem_read <= '1' when MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1';
-  do_mem_write <= '1' when MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1';
-
-  --TODO: make compatible 32bit data from ALU or register to be written to memory (FOR READ AND WRITE)
-
-  --   32 BIT                     --8 BIT
-  data_to_write_to_memory <= data_to_write_from_EX;
 
   -- 32 BIT                     --8 BIT
   intermediate_data_out <= data_read_from_memory when MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1' else
@@ -106,7 +92,7 @@ begin
   --Main memory module portmap
   main_memory : DataMEM
     port map(
-    clock: => clk,
+    clock: => clock_for_memory,
     writedata: => data_to_write_to_memory,
     address => address_for_memory,
     memwrite => do_mem_write,
@@ -116,6 +102,36 @@ begin
   );
 
   -------------------------------------------------------------PROCESSES
+
+  ------Memory operation process
+  MEMORY_PROCESS : process
+  begin
+
+    --Set inputs to memeory
+    if rising_edge(clk) then
+
+      clock_for_memory <= clk;
+      -- Address for the memory must be BYTE addressable. We have from 0 to 32767 bytes. The ALU output containing
+      -- the address is a 32 bit address (at lw or sw operations). Truncate the address to use only the lower 15 bit.
+      -- Also, convert the 15 bit address onto an integer, since memory acccepts integer as address.
+      address_for_memory <= unsigned(ALU_output_from_EX(14 downto 0));
+
+      --Set signals according to the MEM control signals if its a write or a read
+      do_mem_read <= '1' when MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1';
+      do_mem_write <= '1' when MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1';
+
+      --TODO: make compatible 32bit data from ALU or register to be written to memory (FOR READ AND WRITE)
+      --   32 BIT                     --8 BIT
+      data_to_write_to_memory <= data_to_write_from_EX;
+
+      --Once memory returns wait request, we have its output if memory read operation was performed.
+      wait until rising_edge(waitrequest);
+
+    end if;
+
+  end process;
+
+
   ------Actual stage process
   MEM_STAGE_PROCESS : process (clk, reset)
 
