@@ -23,7 +23,7 @@ entity EX_STAGE is
     EX_shift_amount: in std_logic_vector (4 downto 0);
 
     EX_program_counter: in std_logic_vector (31 downto 0);
-    EX_sign_extended_IMM: in in std_logic_vector (31 downto 0);
+    EX_sign_extended_IMM: in std_logic_vector (31 downto 0);
     EX_destination_reg_RD: in std_logic_vector (4 downto 0);
 
     --Control signals to current stage:
