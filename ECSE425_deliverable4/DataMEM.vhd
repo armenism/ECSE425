@@ -9,7 +9,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-ENTITY memory IS
+ENTITY DataMEM IS
 	GENERIC(
 		ram_size : INTEGER := 32768;
 		mem_delay : time := 10 ns;
@@ -24,15 +24,16 @@ ENTITY memory IS
 		readdata: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
 		waitrequest: OUT STD_LOGIC
 	);
-END memory;
+END DataMEM;
 
-ARCHITECTURE rtl OF memory IS
+ARCHITECTURE rtl OF DataMEM IS
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
 	SIGNAL ram_block: MEM;
 	SIGNAL read_address_reg: INTEGER RANGE 0 to ram_size-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
 BEGIN
+
 	--This is the main section of the SRAM model
 	mem_process: PROCESS (clock)
 	BEGIN
@@ -51,6 +52,7 @@ BEGIN
 		read_address_reg <= address;
 		END IF;
 	END PROCESS;
+
 	readdata <= ram_block(read_address_reg);
 
 
