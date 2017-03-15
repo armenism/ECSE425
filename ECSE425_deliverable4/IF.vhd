@@ -2,9 +2,9 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-USE work.my_types.all;
+USE work.Signal_Type.all;
 
-ENTITY IF IS
+ENTITY Instruction_Fetch IS
 	PORT (				IF_Control						: IN	IF_CTRL_SIGS; --control command
 								Clock									: IN	STD_LOGIC;
 								Reset									: IN	STD_LOGIC;
@@ -12,20 +12,20 @@ ENTITY IF IS
 								Ready									: IN	STD_LOGIC;
 								IF_Stall							: IN  STD_LOGIC; --stall from ID if needed
 								ID_Branch_Zero				: IN 	STD_LOGIC;
-								Branch_Taken					: OUT STD_LOGIC --signal to ID to flush address
 								ID_Branch_Address			: IN	STD_LOGIC_VECTOR (31 DOWNTO 0);
+								Branch_Taken					: OUT STD_LOGIC; --signal to ID to flush address
 								IF_PC									: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --next address
 								IF_Instruction				: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 								Memory_Bus_Address		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 								Memory_Bus_Read				: OUT STD_LOGIC;
 								Memory_Bus_Write			: OUT	STD_LOGIC;
 								Memory_Word 					: OUT STD_LOGIC;
-								Memory_Bus_Data				: INOUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+								Memory_Bus_Data				: INOUT STD_LOGIC_VECTOR (31 DOWNTO 0)
 	);
 END ENTITY;
 
 
-ARCHITECTURE behavioural OF IF IS
+ARCHITECTURE behavioural OF Instruction_Fetch IS
 
 	--signals used for instruction fetch
 	SIGNAL Stall : STD_LOGIC;
