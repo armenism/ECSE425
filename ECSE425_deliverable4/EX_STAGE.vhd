@@ -73,7 +73,6 @@ architecture arch of EX_STAGE is
   signal shamt_for_alu : std_logic_vector (31 DOWNTO 0);
   signal ALU_data_A : std_logic_vector (31 DOWNTO 0);
   signal ALU_data_B : std_logic_vector (31 DOWNTO 0);
-  signal ALU_res : std_logic_vector (31 DOWNTO 0);
   signal ALU_res_to_mem : std_logic_vector (31 DOWNTO 0);
 
   --Intermediate multiplication signals, high bits and low bits signals for mflo and mfhi operations (since decoupled from ALU now)
@@ -88,13 +87,18 @@ architecture arch of EX_STAGE is
     shamt_for_alu <= x"000000" & "000" & EX_shift_amount; --Shift amount for the ALU coming from the ID stage (sra,sll,sra) BUT (in ALU, lui hardcoded 16 bit shift)
 
     --Multiplexor for data A input to ALU, can be normal data from RS register or target address to jal
-    ALU_data_A <= x"00000004" when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RS;
+    ALU_data_A <= x"00000004" when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else
+      EX_data_from_RS;
 
     --Multiplexor for data B input to ALU, can be normal data from RT register or Immediate value for I type (addi, ori, xori etc) and address operations or PC
-    ALU_data_B <= EX_sign_extended_IMM when EX_STAGE_CONTROL_SIGNALS.use_imm = '1' else EX_program_counter when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else EX_data_from_RT;
+    ALU_data_B <= EX_sign_extended_IMM when EX_STAGE_CONTROL_SIGNALS.use_imm = '1' else
+      EX_program_counter when EX_STAGE_CONTROL_SIGNALS.jump_and_link = '1' else
+      EX_data_from_RT;
 
     --Multiplexor for output of the stage from ALU. If control signals for EX stage are on for mflo or mfhi, route the high or low bits to output, else, regular ALU output is router to stage output
-    ALU_out_to_MEM <= mult_div_low_bits	WHEN EX_STAGE_CONTROL_SIGNALS.mfhi = '1' ELSE mult_div_hi_bits	WHEN EX_STAGE_CONTROL_SIGNALS.mfhi = '1' ELSE ALU_result;
+    ALU_res_to_mem <= mult_div_low_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
+      mult_div_hi_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
+      ALU_result;
 
     -------------------------------------------------------------PORTMAPS
     mult_div : standalone_multi_div_unit
@@ -111,7 +115,7 @@ architecture arch of EX_STAGE is
 			data_A => ALU_data_A,
 			data_B => ALU_data_B,
 			shamt => shamt_for_alu,
-      RESULT => ALU_res
+      RESULT => ALU_res_to_mem
 		);
 
     -------------------------------------------------------------PROCESSES
@@ -161,7 +165,7 @@ architecture arch of EX_STAGE is
 
           --Assign all the computed signals
   				EX_ALU_result_out <= ALU_res_to_mem;
-  				EX_write_data_out <= EX_data_from_RT;
+  				EX_write_data_out <= EX_data_from_RT; --> in case of LW and SW operations, data from this reg is stored in the MEM
   				EX_destination_reg_RD_out <= EX_destination_reg_RD;
 
   			end if;
