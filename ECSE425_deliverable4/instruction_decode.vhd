@@ -4,7 +4,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-USE work.my_types.all;
+USE work.signal_types.all;
 
 ENTITY instruction_decode IS
 	PORT (
@@ -15,12 +15,15 @@ ENTITY instruction_decode IS
 		branch_taken	: IN 	STD_LOGIC; --Input from IF to know if the branch was taken
 		
 		--Write back inputs
-		WB_ctrl	: IN CTRL_WB_TYPE; --Signals coming from MEM to WB
+		WB_ctrl	: IN WB_CTRL_SIGS; --Signals coming from MEM to WB
 		WB_data	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		WB_addr 	: IN STD_LOGIC_VECTOR (4 DOWNTO 0); --Destination register
 		
 		PC_in		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		instruction_in	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		
+		--memory bus used by mem stage
+		MEM_busacccess_in : IN STD_LOGIC; 
 		
 		--Bypass inputs used for hazard detection (Forwarding)
 		bp_MEM_reg_write	: IN STD_LOGIC;
@@ -63,7 +66,7 @@ ARCHITECTURE arch OF instruction_decode IS
 			reg_addr_2		: 	IN	 STD_LOGIC_VECTOR (4 DOWNTO 0);
 			write_reg		: 	IN  STD_LOGIC_VECTOR (4 DOWNTO 0);
 			write_data		:	IN  STD_LOGIC_VECTOR (31 DOWNTO 0);
-			wite_enable		:  IN  STD_LOGIC;
+			write_enable	:  IN  STD_LOGIC;
 			read_data_1		:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 			read_data_2		:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
 		);
@@ -117,11 +120,11 @@ BEGIN
 		PORT MAP (
 			clock => clock,
 			rst => rst,
-			read_reg_1 => rs,
-			read_reg_2 => rt,
+			reg_addr_1 => rs,
+			reg_addr_2 => rt,
 			write_reg => WB_addr,
 			write_data => WB_data,
-			write_en => WB_ctrl.reg_write,
+			write_enable => WB_ctrl.write_to_register,
 			read_data_1 => rs_reg_1,
 			read_data_2 => rt_reg_2
 		);
@@ -131,8 +134,8 @@ BEGIN
 	imm_extend(31 DOWNTO 16) <= (OTHERS => (instruction_in(15) AND NOT(ControlID_in.zero_extend)));
 	
 	--Choose destination register			
-	destination_reg <= "11111" WHEN ControlEX_in.jump_link = '1' ELSE --If jal instruction, use reg $31
-					rd		  WHEN ControlEX_in.select_imm = '0' ELSE --Choose rd or rt depending on R or I type
+	destination_reg <= "11111" WHEN ControlEX_in.jump_and_link = '1' ELSE --If jal instruction, use reg $31
+					rd		  WHEN ControlEX_in.use_imm = '0' ELSE --Choose rd or rt depending on R or I type
 					rt;
 	
 --Logic for branches and jumps
@@ -191,11 +194,11 @@ BEGIN
 	-- Stall. If the previous intruction was load: 
 	-- put a no operation the registers that will be used by the current instruction
 	-- instruction
-	insert_nop <= '1' WHEN (bp_ID_ctrl_MEM.mem_read = '1' AND
+	insert_nop <= '1' WHEN (bp_ID_ctrl_MEM.read_from_memory = '1' AND
 							((bp_ID_rt = rs) or bp_ID_rt = rt))
 							OR (wr_done = '1') else
 				 '0';
-	hazard_stall <= insert_nop OR in_mem_busacccess;
+	hazard_stall <= insert_nop OR mem_busacccess_in;
 	ID_stall_IF <= hazard_stall;
 	stall <= hazard_stall OR ((NOT rd_ready) AND (NOT wr_done));
 	
@@ -203,7 +206,7 @@ BEGIN
 	pipeline : PROCESS (clock, rst)
 	BEGIN
 		IF rst = '1' THEN
-			ControlID_out <= ('0', '0', '0', '0', add_op, mult_op, '0', '0', '0');
+			ControlEX_out <= ('0', '0', alu_addi, '0', '0', '0');
 			ControlWB_out <= (OTHERS => '0');
 			ID_rs <= (OTHERS => '0');
 			ID_rt <= (OTHERS => '0');
@@ -215,12 +218,12 @@ BEGIN
 			--flush instruction after branch
 			IF stall = '0' AND branch_taken = '1' THEN 
 				--Insert NOP
-				ControlID_out <= ('0', '0', '0', '0', add_op, mult_op, '0', '0', '0');
+				ControlEX_out <= ('0', '0', alu_addi, '0', '0', '0');
 				ControlWB_out <= (OTHERS => '0');
 				
 			--pass instruction to next stage
 			ELSIF stall = '0' THEN 
-				ControlID_out <= ControlEX_in;
+				ControlEX_out <= ControlEX_in;
 				ControlWB_out <= ControlWB_in;
 				ID_rs <= rs_value;
 				ID_rt <= rt_value;
