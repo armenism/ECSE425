@@ -2,7 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-USE work.Signal_Type.all;
+USE work.Signal_Types.all;
 
 ENTITY Instruction_Fetch IS
 	PORT (				IF_Control						: IN	IF_CTRL_SIGS; --control command
@@ -92,7 +92,7 @@ BEGIN
 				IF_PC <= x"00000000";
 				IF_Instruction <= x"00000000";
 			ELSIF Stall = '0' THEN
-				IF_PC <= PC_Plus;
+				IF_PC <= x"00000000";--PC_Plus;
 				IF_Instruction <= Instruction;
 			END IF;
 		END IF;
