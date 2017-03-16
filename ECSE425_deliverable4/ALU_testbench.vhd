@@ -5,7 +5,6 @@ LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.signal_types.all;
-use work.standalone_multi_div_unit
 
 
 entity ALU_testbench is
@@ -106,7 +105,7 @@ architecture behaviour of ALU_testbench is
 			input_B <= x"00000030"; -- (48)
 
 			wait for clk_period;
-			assert result = x"0000001B" report "sub result should have been -27" severity error;
+			assert result = x"FFFFFFE5" report "sub result should have been -27" severity error;
 
 		-- -- test alu_mult
 		-- wait for clk_period;
@@ -192,11 +191,11 @@ architecture behaviour of ALU_testbench is
 		wait for clk_period;
 
   		alu_op <= alu_and;
-			input_A <= x"01010101"; --
-			input_B <= x"10101010"; --
+			input_A <= "00000000000000000000000001010101"; --
+			input_B <= "00000000000000000000000010101010"; --
 
 			wait for clk_period;
-			assert result = x"00000000" report "and result should have been 0" severity error;
+			assert result = "00000000000000000000000000000000" report "and result should have been 0" severity error;
 
 		-- test alu_and
 		wait for clk_period;
@@ -206,7 +205,7 @@ architecture behaviour of ALU_testbench is
 			input_B <= x"FDABC121"; --
 
 			wait for clk_period;
-			assert result = x"F0A0C101" report "and result should have been 4037067009" severity error;
+			assert result = x"F9A9C101" report "and result should have been 4188651777" severity error;
 
 		-- test alu_andi
 		wait for clk_period;
@@ -226,7 +225,7 @@ architecture behaviour of ALU_testbench is
 			input_B <= x"FDABC121"; --
 
 			wait for clk_period;
-			assert result = x"F0A0C101" report "andi result should have been 4037067009" severity error;
+			assert result = x"F9A9C101" report "andi result should have been 4037067009" severity error;
 
 		-- test alu_or
 		wait for clk_period;
@@ -272,11 +271,11 @@ architecture behaviour of ALU_testbench is
 		wait for clk_period;
 
   		alu_op <= alu_nor;
-			input_A <= x"00000000"; --
+			input_A <= x"80000000"; --
 			input_B <= x"00000010"; --
 
 			wait for clk_period;
-			assert result = x"11111101" report "nor result should have been 286331137" severity error;
+			assert result = x"7FFFFFEF" report "nor result should have been 286331137" severity error;
 
 		-- test alu_nor
 		wait for clk_period;
@@ -286,7 +285,7 @@ architecture behaviour of ALU_testbench is
 			input_B <= x"01010101"; --
 
 			wait for clk_period;
-			assert result = x"00000000" report "nor result should have been 0" severity error;
+			assert result = x"EEEEEEEE" report "nor result should have been 0" severity error;
 
 		-- test alu_xor
 		wait for clk_period;
@@ -355,7 +354,8 @@ architecture behaviour of ALU_testbench is
 				input_B <= "00000000000000000000000000100111"; -- IMMEDIATE loaded to data_B
 
 				wait for clk_period;
-				assert result = "0000000001100111000000000000000" report "lui result should have been 0000000001100111000000000000000" severity error;
+				
+				assert result = x"00270000" report "lui result should have been 00000000001100111000000000000000" severity error;
 
 	-- test sll (shift logical left)
 		wait for clk_period;
@@ -365,7 +365,7 @@ architecture behaviour of ALU_testbench is
 				shamt <= "00000000000000000000000000000011";
 
 				wait for clk_period;
-				assert result = "00000000000000000000000010011100" report "sll result should have been 00000000000000000000000010011100" severity error;
+				assert result = "00000000000000000000000100111000" report "sll result should have been 00000000000000000000000100111000" severity error;
 
 	-- test sll (shift logical left)
 		wait for clk_period;
@@ -380,17 +380,17 @@ architecture behaviour of ALU_testbench is
 		-- test slr (shift logical right)
 			wait for clk_period;
 
-		  		alu_op <= alu_slr;
+		  		alu_op <= alu_srl;
 					input_B <= "00011000000000000000000000000000"; -- data from $t data_B
-					shamt <= "00000000000000000000000000000101";
+					shamt <= "00000000000000000000000000000001";
 
 					wait for clk_period;
-					assert result = "00000000110000000000000010011100" report "slr result should have been 00000000110000000000000010011100" severity error;
+					assert result = "00001100000000000000000000000000" report "slr result should have been 00001100000000000000000000000000" severity error;
 
 		-- test slr (shift logical right)
 			wait for clk_period;
 
-		  		alu_op <= alu_slr;
+		  		alu_op <= alu_srl;
 					input_B <= "00000000000000000000000000000100"; -- data from $t data_B
 					shamt <= "00000000000000000000000000000010";
 
