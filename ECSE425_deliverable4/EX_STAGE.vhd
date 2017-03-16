@@ -53,7 +53,7 @@ architecture arch of EX_STAGE is
       OPERAND_B: in	 std_logic_vector (31 downto 0);
       OPERATION: in alu_operation; -->mult, div only to be used here from alu instruction types
       MULT_DIV_RESULT: out std_logic_vector (63 downto 0)
-    );
+    )
   end component;
 
   ------ALU component
@@ -64,7 +64,7 @@ architecture arch of EX_STAGE is
       data_B: in std_logic_vector (31 DOWNTO 0);
       shamt: in std_logic_vector (31 DOWNTO 0);
       RESULT: out std_logic_vector (31 DOWNTO 0)
-    );
+    )
 
   end component;
   -------------------------------------------------------------SIGNALS

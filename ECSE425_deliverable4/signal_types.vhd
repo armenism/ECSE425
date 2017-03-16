@@ -31,10 +31,19 @@ package signal_types is
                         alu_srl,
                         alu_sra);
 
+<<<<<<< HEAD
 	type IF_CTRL_SIGS is
 		record
-		--TODO define signales needed for WB stage
+branch : STD_LOGIC;
+jump 	: STD_Logic;
+bne	: STD_Logic;
 		end record;
+=======
+--	type IF_CTRL_SIGS is
+--		record
+		--TODO define signales needed for WB stage
+		--end record;
+>>>>>>> origin/master
 
 	type ID_CTRL_SIGS is
 		record
