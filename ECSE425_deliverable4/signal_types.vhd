@@ -31,10 +31,10 @@ package signal_types is
                         alu_srl,
                         alu_sra);
 
-	type IF_CTRL_SIGS is
-		record
+--	type IF_CTRL_SIGS is
+--		record
 		--TODO define signales needed for WB stage
-		end record;
+		--end record;
 
 	type ID_CTRL_SIGS is
 		record

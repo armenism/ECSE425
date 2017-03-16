@@ -68,7 +68,7 @@
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use signal_types.all
+use work.signal_types.all;
 
 entity ALU is
 
@@ -76,7 +76,7 @@ entity ALU is
 		ALU_OPERATION: in alu_operation; 									--Instead of standalone code, use alu operation from types. The bit vector will be multiplexed onto types in ID phase.
 		data_A : in std_logic_vector(31 downto 0);				--RS reg
 		data_B : in std_logic_vector(31 downto 0);				--RT reg
-		shamt: in IN  std_logic_vector(31 downto 0);      --Will be easier to have a dedicated shift amount
+		shamt: in  std_logic_vector(31 downto 0);      --Will be easier to have a dedicated shift amount
 		RESULT : out std_logic_vector(31 downto 0) 				--result out
 	);
 
@@ -88,12 +88,11 @@ architecture alu_arch of ALU is
 
 	begin
 
-	ALU_Process : process (data_A, data_B, ALU_OPERATION, shamt)
+	ALU_Process : process ( data_A, data_B, ALU_OPERATION, shamt)
 
 		variable lui_temp : std_logic_vector(31 downto 0);
-
 		begin
-
+          
 				case ALU_OPERATION is
 
 					--CASE add,addi
@@ -104,40 +103,12 @@ architecture alu_arch of ALU is
 					when alu_sub =>
 						intermediate_result <= std_logic_vector(signed(data_A) - signed(data_B));
 
-					-- DEPRECATED, doing it in EX stage now
-					-- --CASE mult
-					-- when "0010" =>
-					-- 	-- do signed multiplication and store higher bits in HI and lwoer bits in LO
-					-- 	multiplication_res := std_logic_vector(signed(data_A) * signed(data_B));
-					-- 	LO <= multiplication_res(31 downto 0);
-					-- 	HI <= multiplication_res(63 downto 32);
-					--
-					-- --CASE div
-					-- when "0011" =>
-					-- 	-- do signed division and assign higher bits to remainder
-					-- 	division_res := std_logic_vector(signed(data_A) / signed(data_B));
-					-- 	--division_remainer := std_logic_vector(signed(data_A) mod signed(data_B));
-					-- 	division_remainer := std_logic_vector(signed(data_A) rem signed(data_B));
-					-- 	LO <= division_res;
-					-- 	HI <= division_remainer;
-
-					-- DEPRECATED, doing it in EX stage now
-					-- --CASE mfhi
-					-- --For purposes of moving the higher bits of mult or div onto geenral purpose reg
-					-- when "1001" =>
-					-- 	intermediate_result <= LO;
-					--
-					-- --CASE mflo
-					-- --For purposes of moving the lower bits of mult or div onto geenral purpose reg
-					-- when "1010" =>
-					-- 	intermediate_result <= HI;
-
 					--CASE slt,slti
 					when alu_slt|alu_slti =>
 						if (signed(data_A) < signed(data_B)) then
-							intermediate_result <= '00000000000000000000000000000001';
+							intermediate_result <= "00000000000000000000000000000001";
 						else
-							intermediate_result <= '00000000000000000000000000000000';
+							intermediate_result <= "00000000000000000000000000000000";
 						end if;
 
 					--CASE and,andi
@@ -170,24 +141,15 @@ architecture alu_arch of ALU is
 
 					--CASE slr
 					when alu_srl =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) slr to_integer(signed(shamt)));
+						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) srl to_integer(signed(shamt)));
 
 					--CASE sra
 					when alu_sra =>
 						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sra to_integer(signed(shamt)));
 
-					-- DEPRECATED
-					-- --CASE eq (needed to produce zero signal for beq, bne)
-					-- when "1111" =>
-					-- 	if (signed(data_A) = signed(data_B))  then
-					-- 		intermediate_zero <= '1';
-					-- 		else
-					-- 		intermediate_zero <= '0';
-					-- 	end if;
-
 					--Anything else
 					when others =>
-						intermediate_result <= 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
+						intermediate_result <= "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 				end case;
 
