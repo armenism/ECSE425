@@ -92,7 +92,7 @@ architecture alu_arch of ALU is
 
 		variable lui_temp : std_logic_vector(31 downto 0);
 		begin
-          
+
 				case ALU_OPERATION is
 
 					--CASE add,addi
