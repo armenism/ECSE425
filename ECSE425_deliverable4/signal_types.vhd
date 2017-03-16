@@ -60,6 +60,7 @@ package signal_types is
 	type WB_CTRL_SIGS is
 		record
 			write_to_register: std_logic;
+			temp: std_logic;
 	  end record;
 
   -- Type necessary to contain signals necessary for MEM stage control
