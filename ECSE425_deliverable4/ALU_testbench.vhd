@@ -348,17 +348,77 @@ architecture behaviour of ALU_testbench is
 			wait for clk_period;
 			assert result = x"00000000" report "xori result should have been 0" severity error;
 
-	-- test lui
+	-- test lui (load upper IMM)
 		wait for clk_period;
 
 	  		alu_op <= alu_lui;
-				input_A <= x"10101010"; --
-				input_B <= x"10101010"; --
+				input_B <= "00000000000000000000000000100111"; -- IMMEDIATE loaded to data_B
 
 				wait for clk_period;
-				assert result = x"00000000" report "xori result should have been 0" severity error;
+				assert result = "0000000001100111000000000000000" report "lui result should have been 0000000001100111000000000000000" severity error;
 
-    wait;
+	-- test sll (shift logical left)
+		wait for clk_period;
+
+	  		alu_op <= alu_sll;
+				input_B <= "00000000000000000000000000100111"; --  data from $t data_B
+				shamt <= "00000000000000000000000000000011";
+
+				wait for clk_period;
+				assert result = "00000000000000000000000010011100" report "sll result should have been 00000000000000000000000010011100" severity error;
+
+	-- test sll (shift logical left)
+		wait for clk_period;
+
+	  		alu_op <= alu_sll;
+				input_B <= "01000000000000000000000000000000"; --  data from $t data_B
+				shamt <= "00000000000000000000000000000001";
+
+				wait for clk_period;
+				assert result = "10000000000000000000000000000000" report "sll result should have been 10000000000000000000000000000000" severity error;
+
+		-- test slr (shift logical right)
+			wait for clk_period;
+
+		  		alu_op <= alu_slr;
+					input_B <= "00011000000000000000000000000000"; -- data from $t data_B
+					shamt <= "00000000000000000000000000000101";
+
+					wait for clk_period;
+					assert result = "00000000110000000000000010011100" report "slr result should have been 00000000110000000000000010011100" severity error;
+
+		-- test slr (shift logical right)
+			wait for clk_period;
+
+		  		alu_op <= alu_slr;
+					input_B <= "00000000000000000000000000000100"; -- data from $t data_B
+					shamt <= "00000000000000000000000000000010";
+
+					wait for clk_period;
+					assert result = "00000000000000000000000000000001" report "slr result should have been 00000000000000000000000000000001" severity error;
+
+		-- test sra (shift right arithmetic)
+			wait for clk_period;
+
+		  		alu_op <= alu_sra;
+					input_B <= "11111111111111111111111111001011"; --  data from $t data_B
+					shamt <= "00000000000000000000000000000010";
+
+					wait for clk_period;
+					assert result = "11111111111111111111111111110010" report "sra result should have been 11111111111111111111111111110010" severity error;
+
+
+		-- test sra (shift right arithmetic)
+			wait for clk_period;
+
+					alu_op <= alu_sra;
+					input_B <= "11111111111111111111111111111111"; --  data from $t data_B
+					shamt <= "00000000000000000000000000000010";
+
+					wait for clk_period;
+					assert result = "11111111111111111111111111111111" report "sra result should have been 11111111111111111111111111111111" severity error;
+					
+	    wait;
 
     END PROCESS test_process;
 
