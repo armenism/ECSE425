@@ -31,10 +31,12 @@ package signal_types is
                         alu_srl,
                         alu_sra);
 
---	type IF_CTRL_SIGS is
---		record
-		--TODO define signales needed for WB stage
-		--end record;
+	type IF_CTRL_SIGS is
+		record
+			branch 	: STD_LOGIC;
+			jump	 	: STD_LOGIC;
+			bne	 	: STD_LOGIC;
+		end record;
 
 	type ID_CTRL_SIGS is
 		record
@@ -48,7 +50,7 @@ package signal_types is
 			use_imm		: std_logic;
 			jump_and_link	: std_logic;
 			ALU_control_op : alu_operation;
-      multdiv: std_logic;
+			multdiv: std_logic;
 			mfhi: std_logic;
 			mflo: std_logic;
 
@@ -57,14 +59,15 @@ package signal_types is
   -- Type necessary to contain signals necessary for WB stage control
 	type WB_CTRL_SIGS is
 		record
-    write_to_register: std_logic;
+			write_to_register: std_logic;
+			temp: std_logic;
 	  end record;
 
   -- Type necessary to contain signals necessary for MEM stage control
 	type MEM_CTRL_SIGS is
 		record
-    read_from_memory: std_logic;
-    write_to_memory: std_logic;
+			read_from_memory: std_logic;
+			write_to_memory: std_logic;
 		end record;
 
 end signal_types;
