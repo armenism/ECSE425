@@ -227,7 +227,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
         --sra
         when "000011" => EX_SIGS.ALU_control_op <= alu_sra;
         --null
-        when others => EX_SIGS.ALU_control_op <= null;
+        when others => EX_SIGS.ALU_control_op <= add_op;
 
       end case;
 
@@ -272,7 +272,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
          --mult
         when "011000" => EX_SIGS.multdiv <= mult_op;
          --others
-        when others => EX_SIGS.multdiv <= null;
+        when others => EX_SIGS.multdiv <= div_op;
 
       end case;
 
@@ -366,7 +366,9 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
           EX_SIGS.mfhi <= '0';
           EX_SIGS.mflo <= '1'';
          --others
-        when others => EX_SIGS.multdiv <= null;
+        when others =>
+          EX_SIGS.mfhi <= '0';
+          EX_SIGS.mflo <= '0'';
 
       end case;
 
@@ -378,9 +380,103 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       --Necessary to wb result
       WB_CTRL_SIGS.reg_write <= '1';
 
-  -------------------------------------------------------------- R TYPE mflo/mfhi(done)
+    -------------------------------------------------------------- R TYPE mflo/mfhi(done)
+
+    -------------------------------------------------------------- I TYPE arithmetic
+    when i_arithmetic =>
+				-- Arithmetic I-Type instructions addi, addiu, andi, slti, sltiu, ori, xori
+
+        --Same as before, not a jump or branch, so all 0s
+        IF_SIGS.jump <= '0';
+        IF_SIGS.bne <= '0';
+        IF_SIGS.branch <= '0';
+
+        --Then set all ID signals to 0 (propagation purposes, not a jump or branch), extention must be there though
+        ID_SIGS.branch <= '0';
+        ID_SIGS.jr <= '0';
+
+        --****DISTINGUISH ZERO and SIGN extention
+        case funct is
+           --case zero ext
+          when "001100" =>
+            D_SIGS.zero_extend <= '1';
+           --case zero ext
+          when "001101" =>
+            D_SIGS.zero_extend <= '1';
+           --others
+          when others => D_SIGS.zero_extend <= '0';
+
+        end case;
+
+        --Execute stage, all 0's, except IMM signal
+        EX_SIGS.multdiv <= mult;
+        EX_SIGS.write_hilo_result <= '0';
+        EX_SIGS.use_imm <= '1';
+        EX_SIGS.jump_and_link <= '0';
+        EX_SIGS.mfhi <= '0';
+        EX_SIGS.mflo <= '0';
+
+				--ALU ope in case of immediate arithmetic
+				case opcode IS
+          --addi
+					when "001000" => EX_SIGS.ALU_control_op <= alu_add;
+          --andi
+					when "001100" => EX_SIGS.ALU_control_op <= alu_and;
+          --ori
+					when "001101" => EX_SIGS.ALU_control_op <= alu_or;
+           --xori
+					when "001110" => EX_SIGS.ALU_control_op <= alu_xor;
+          --slti
+          when "001010" => EX_SIGS.ALU_control_op <= alu_slt;
+          --others
+					when others => EX_SIGS.ALU_control_op <= alu_add;
+
+				end case;
+
+        --MEM ops are all 0's
+        MEM_SIGS.read_from_memory <= '0';
+        MEM_SIGS.write_to_memory <= '0';
+        MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+        --Necessary to wb result
+        WB_CTRL_SIGS.reg_write <= '1';
+
+      -------------------------------------------------------------- I TYPE arithmetic(done)
+
+      -------------------------------------------------------------- I TYPE LUI
+      when i_lui =>
+
+        --Same as before, not a jump or branch, so all 0s
+        IF_SIGS.jump <= '0';
+        IF_SIGS.bne <= '0';
+        IF_SIGS.branch <= '0';
+
+        --Then set all ID signals to 0 (propagation purposes, not a jump or branch)
+        ID_SIGS.branch <= '0';
+        ID_SIGS.jr <= '0';
+        ID_SIGS.zero_extend <= '0';
+
+        --EX all to 0's except lui and imm
+        EX_SIGS.use_imm <= '1';
+        EX_SIGS.jump_and_link <= '0';
+
+        EX_SIGS.lui <= '1';
+        EX_SIGS.ALU_control_op <= alu_add;
+        EX_SIGS.multdiv <= mult;
+
+        EX_SIGS.write_hilo_result <= '0';
+        EX_SIGS.mfhi <= '0';
+        EX_SIGS.mflo <= '0';
+
+        --MEM ops are all 0's
+        MEM_SIGS.read_from_memory <= '0';
+        MEM_SIGS.write_to_memory <= '0';
+        MEM_SIGS.memory_bus <= '0'; --> will need eventually
 
 
+        --Necessary to wb result
+        WB_CTRL_SIGS.reg_write <= '1';
+      -------------------------------------------------------------- I TYPE LUI(done)
 
   end process;
 
