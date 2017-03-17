@@ -97,8 +97,8 @@ architecture arch of EX_STAGE is
       EX_data_from_RT;
 
     --Multiplexor for output of the stage from ALU. If control signals for EX stage are on for mflo or mfhi, route the high or low bits to output, else, regular ALU output is router to stage output
-    ALU_res_to_mem <= mult_div_low_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
-      mult_div_hi_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
+    ALU_res_to_mem <= mult_div_hi_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
+      mult_div_low_bits	when EX_STAGE_CONTROL_SIGNALS.mflo = '1' else
       ALU_result;
 
     -------------------------------------------------------------PORTMAPS
