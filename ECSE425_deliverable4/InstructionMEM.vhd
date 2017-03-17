@@ -3,7 +3,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-ENTITY memory IS
+ENTITY InstructionMEM IS
 	GENERIC(
 		ram_size : INTEGER := 32768;
 		mem_delay : time := 10 ns;
@@ -18,9 +18,9 @@ ENTITY memory IS
 		readdata: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
 		waitrequest: OUT STD_LOGIC
 	);
-END memory;
+END InstructionMEM;
 
-ARCHITECTURE rtl OF memory IS
+ARCHITECTURE rtl OF InstructionMEM IS
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(7 DOWNTO 0);
 	SIGNAL ram_block: MEM;
 	SIGNAL read_address_reg: INTEGER RANGE 0 to ram_size-1;
