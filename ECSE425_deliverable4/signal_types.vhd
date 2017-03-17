@@ -32,6 +32,9 @@ package signal_types is
                         alu_srl,
                         alu_sra);
 
+	--SIGNAL TYPES for multiplication unit (EX stage)
+	type multiplication_unit is (mult, div);
+
 	--SIGNAL TYPES MAIN CONTROL UNIT
 	type control_unit_instruction is(r_arithmetic,
 																	 r_multi_div,
@@ -42,7 +45,7 @@ package signal_types is
 																	 i_lui,
 																	 i_br,
 								  							 	 j_jump,
-																	 j_jal);
+																	 j_jal)
 
   --SIGNAL TYPES FOR INSTRUCTION FETCH STAGE CONTROL SIGNALS
 	type IF_CTRL_SIGS is
@@ -69,6 +72,8 @@ package signal_types is
 			multdiv: std_logic;
 			mfhi: std_logic;
 			mflo: std_logic;
+			lui: std_logic;
+			write_hilo_result: std_logic;  --post div/mult signal necessary to indicate which bits will be written 
 
 		end record;
 
