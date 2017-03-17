@@ -47,7 +47,7 @@ entity CPU_control_unit is
     ID_SIGS: out ID_CTRL_SIGS;
     EX_SIGS: out EX_CTRL_SIGS;
     MEM_SIGS:  out MEM_CTRL_SIGS;
-    WB_CTRL_SIGS: out WB_CTRL_SIGS
+    WB_SIGS: out WB_CTRL_SIGS
   );
 end CPU_control_unit;
 
@@ -247,7 +247,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       MEM_SIGS.memory_bus <= '0'; --> will need eventually
 
       --Finally because its an R type, write back is needed.
-      WB_CTRL_SIGS.write_to_register <= '1';
+      WB_SIGS.write_to_register <= '1';
       -------------------------------------------------------------- R TYPE ARITHMETIC (done)
 
     -------------------------------------------------------------- R TYPE mult/div
@@ -294,7 +294,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       MEM_SIGS.memory_bus <= '0'; --> will need eventually
 
       --No writeback in this case, only hi-lo write
-      WB_CTRL_SIGS.reg_write <= '0';
+      WB_SIGS.write_to_register <= '0';
 
     -------------------------------------------------------------- R TYPE mult/div (done)
 
@@ -329,7 +329,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
         MEM_SIGS.memory_bus <= '0'; --> will need eventually
 
         --No writeback in this case, only hi-lo write
-        WB_CTRL_SIGS.reg_write <= '0';
+        WB_SIGS.write_to_register <= '0';
     -------------------------------------------------------------- R TYPE jump register(done)
 
     -------------------------------------------------------------- R TYPE mflo/mfhi
@@ -378,7 +378,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       MEM_SIGS.memory_bus <= '0'; --> will need eventually
 
       --Necessary to wb result
-      WB_CTRL_SIGS.reg_write <= '1';
+      WB_SIGS.write_to_register <= '1';
 
     -------------------------------------------------------------- R TYPE mflo/mfhi(done)
 
@@ -399,12 +399,12 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
         case funct is
            --case zero ext
           when "001100" =>
-            D_SIGS.zero_extend <= '1';
+            ID_SIGS.zero_extend <= '1';
            --case zero ext
           when "001101" =>
-            D_SIGS.zero_extend <= '1';
+            ID_SIGS.zero_extend <= '1';
            --others
-          when others => D_SIGS.zero_extend <= '0';
+          when others => ID_SIGS.zero_extend <= '0';
 
         end case;
 
@@ -439,7 +439,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
         MEM_SIGS.memory_bus <= '0'; --> will need eventually
 
         --Necessary to wb result
-        WB_CTRL_SIGS.reg_write <= '1';
+        WB_SIGS.write_to_register <= '1';
 
       -------------------------------------------------------------- I TYPE arithmetic(done)
 
@@ -475,8 +475,102 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
 
 
         --Necessary to wb result
-        WB_CTRL_SIGS.reg_write <= '1';
+        WB_SIGS.write_to_register <= '1';
       -------------------------------------------------------------- I TYPE LUI(done)
+
+      -------------------------------------------------------------- I TYPE memory sw/lw
+      when i_memory =>
+
+        --Same as before, not a jump or branch, so all 0s
+        IF_SIGS.jump <= '0';
+        IF_SIGS.bne <= '0';
+        IF_SIGS.branch <= '0';
+
+        --Then set all ID signals to 0 (propagation purposes, not a jump or branch)
+        ID_SIGS.branch <= '0';
+        ID_SIGS.jr <= '0';
+        ID_SIGS.zero_extend <= '0';
+
+        --EX all to 0's except imm
+        EX_SIGS.use_imm <= '1';
+        EX_SIGS.jump_and_link <= '0';
+
+        EX_SIGS.lui <= '0';
+        EX_SIGS.ALU_control_op <= alu_add;
+        EX_SIGS.multdiv <= mult;
+
+        EX_SIGS.write_hilo_result <= '0';
+        EX_SIGS.mfhi <= '0';
+        EX_SIGS.mflo <= '0';
+
+        --Depending on op code now need to properly set signals for read, write
+        --as well as the right back stage control.
+        case opcode is
+          --lw
+          when "100011" =>
+            MEM_SIGS.read_from_memory <= '1';
+            MEM_SIGS.write_to_memory <= '0';
+            MEM_SIGS.memory_bus <= '1';
+            WB_SIGS.write_to_register <= '1';
+          --sw
+          WHEN "101011" =>
+            MEM_SIGS.read_from_memory <= '0';
+            MEM_SIGS.write_to_memory <= '1';
+            MEM_SIGS.memory_bus <= '1';
+            WB_SIGS.write_to_register <= '0';
+          --others
+          when others =>
+            MEM_SIGS.read_from_memory <= '0';
+            MEM_SIGS.write_to_memory <= '0';
+            MEM_SIGS.memory_bus <= '0';
+            WB_SIGS.write_to_register <= '0';
+        END CASE;
+    -------------------------------------------------------------- I TYPE memory sw/lw (done)
+
+    -------------------------------------------------------------- I TYPE branch
+        WHEN i_br =>
+
+          --Branch signal valid
+  				IF_SIGS.branch <= '1';
+  				IF_SIGS.jump <= '0';
+
+          case opcode is
+
+            --bne case
+            when "000101" =>
+              IF_SIGS.bne <= '1';
+            --otherwise
+            when others =>
+              IF_SIGS.bne <= '0';
+
+          end case;
+
+
+          --Then set all ID signals to 0 (except branch)
+          ID_SIGS.branch <= '1'';
+          ID_SIGS.jr <= '0';
+          ID_SIGS.zero_extend <= '0';
+
+          --EX all to 0's except imm
+          EX_SIGS.use_imm <= '1';
+          EX_SIGS.jump_and_link <= '0';
+
+          EX_SIGS.lui <= '0';
+          EX_SIGS.ALU_control_op <= alu_add;
+          EX_SIGS.multdiv <= mult;
+
+          EX_SIGS.write_hilo_result <= '0';
+          EX_SIGS.mfhi <= '0';
+          EX_SIGS.mflo <= '0';
+
+          --MEM ops are all 0's
+          MEM_SIGS.read_from_memory <= '0';
+          MEM_SIGS.write_to_memory <= '0';
+          MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+          --No wb
+  				WB_SIGS.write_to_register <= '0';
+
 
   end process;
 
