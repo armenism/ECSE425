@@ -67,6 +67,7 @@ begin
   begin
 
     case op_code is
+
       -- R TYPE case
       when "000000" =>
 
@@ -83,51 +84,97 @@ begin
             --mflo/mfhi case
             when "010000" =>
                 instruction_type <= r_hilo;
+            when "010010" =>
+                instruction_type <= r_hilo;
             --add case
-            when "100000"
+            when "100000" =>
                 instruction_type <= r_arithmetic;
             --sub case
-            when "100010"
+            when "100010" =>
                 instruction_type <= r_arithmetic;
             --and case
-            when "100100"
+            when "100100" =>
                 instruction_type <= r_arithmetic;
             --slt case
-            when "101010"
+            when "101010" =>
                 instruction_type <= r_arithmetic;
             --or case
-            when "100101"
+            when "100101" =>
                 instruction_type <= r_arithmetic;
             --nor case
-            when "100111"
+            when "100111" =>
                 instruction_type <= r_arithmetic;
             --xor case
-            when "101000"
+            when "101000" =>
                 instruction_type <= r_arithmetic;
             --sra case
-            when "000011"
+            when "000011" =>
                 instruction_type <= r_arithmetic;
             --srl case
-            when "000010"
+            when "000010" =>
                 instruction_type <= r_arithmetic;
             --sll case
-            when "000000"
+            when "000000" =>
                 instruction_type <= r_arithmetic;
+          end case;
 
 
+      -- I type case arithmetic
+      --addi case
+      when "001000" =>
+          instruction_type <= i_arithmetic;
+      --slti case
+      when "001010" =>
+          instruction_type <= i_arithmetic;
+      --andi case
+      when "001100" =>
+          instruction_type <= i_arithmetic;
+      --ori case
+      when "001101" =>
+          instruction_type <= i_arithmetic;
+      --xori case
+      when "001110" =>
+          instruction_type <= i_arithmetic;
 
-        if funct = "001000" then --jr
-  					instr_type <= R_JUMP_REG;
+
+      -- I type case lui
+      --lui case
+      when "001111" =>
+          instruction_type <= i_lui;
 
 
-  				ELSIF funct = "010000" OR --mfhi
-  						funct = "010010" THEN --mflow
-  					instr_type <= R_MOVE_HILO;
+      -- I type case memory operations
+      --case lw
+      when "100011" =>
+          instruction_type <= i_memory;
+      --case sw
+      when "101011" =>
+          instruction_type <= i_memory;
 
-  				ELSE
-  					instr_type <= R_ARITHMETIC;
-  				END IF;
 
+      -- I type case branch operations
+      --case beq
+      when "000100" =>
+          instruction_type <= i_br;
+      --case bne
+      when "000101" =>
+          instruction_type <= i_br;
+
+
+      -- J type case jump operations
+      --case jump
+      when "000010" =>
+          instruction_type <= j_jump;
+      --case jump
+      when "000011" =>
+          instruction_type <= j_jal;
+
+      --Undef
+      when others =>
+          null;
+  end case;
+
+end process;
 
 
 
