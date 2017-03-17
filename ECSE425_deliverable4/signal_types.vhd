@@ -73,7 +73,7 @@ package signal_types is
 			mfhi: std_logic;
 			mflo: std_logic;
 			lui: std_logic;
-			write_hilo_result: std_logic;  --post div/mult signal necessary to indicate which bits will be written 
+			write_hilo_result: std_logic;  --post div/mult signal necessary to indicate which bits will be written
 
 		end record;
 
@@ -89,6 +89,7 @@ package signal_types is
 		record
 			read_from_memory: std_logic;
 			write_to_memory: std_logic;
+			memory_bus: std_logic;
 		end record;
 
 end signal_types;
