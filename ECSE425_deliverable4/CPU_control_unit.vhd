@@ -513,7 +513,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
             MEM_SIGS.memory_bus <= '1';
             WB_SIGS.write_to_register <= '1';
           --sw
-          WHEN "101011" =>
+          when "101011" =>
             MEM_SIGS.read_from_memory <= '0';
             MEM_SIGS.write_to_memory <= '1';
             MEM_SIGS.memory_bus <= '1';
@@ -524,11 +524,11 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
             MEM_SIGS.write_to_memory <= '0';
             MEM_SIGS.memory_bus <= '0';
             WB_SIGS.write_to_register <= '0';
-        END CASE;
-    -------------------------------------------------------------- I TYPE memory sw/lw (done)
+        end case;
+        -------------------------------------------------------------- I TYPE memory sw/lw (done)
 
-    -------------------------------------------------------------- I TYPE branch
-        WHEN i_br =>
+        -------------------------------------------------------------- I TYPE branch
+        when i_br =>
 
           --Branch signal valid
   				IF_SIGS.branch <= '1';
@@ -570,7 +570,75 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
 
           --No wb
   				WB_SIGS.write_to_register <= '0';
+      -------------------------------------------------------------- I TYPE branch (done)
 
+      -------------------------------------------------------------- J TYPE jump
+      when j_jump =>
+        --Jump case
+        IF_SIGS.jump <= '1';
+        IF_SIGS.bne <= '0;
+        IF_SIGS.branch <= '0';
+
+        --Then set all ID signals to 0 (except branch)
+        ID_SIGS.branch <= '0'';
+        ID_SIGS.jr <= '0';
+        ID_SIGS.zero_extend <= '0';
+
+        --EX all to 0's
+        EX_SIGS.use_imm <= '0';
+        EX_SIGS.jump_and_link <= '0';
+
+        EX_SIGS.lui <= '0';
+        EX_SIGS.ALU_control_op <= alu_add;
+        EX_SIGS.multdiv <= mult;
+
+        EX_SIGS.write_hilo_result <= '0';
+        EX_SIGS.mfhi <= '0';
+        EX_SIGS.mflo <= '0';
+
+
+        --MEM ops are all 0's
+        MEM_SIGS.read_from_memory <= '0';
+        MEM_SIGS.write_to_memory <= '0';
+        MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+        --No wb
+				WB_SIGS.write_to_register <= '0';
+      -------------------------------------------------------------- J TYPE jump(done)
+
+      -------------------------------------------------------------- J TYPE jump and link
+			when j_jal =>
+        --Jump case
+        IF_SIGS.jump <= '1';
+        IF_SIGS.bne <= '0;
+        IF_SIGS.branch <= '0';
+
+        --Then set all ID signals to 0 (except branch)
+        ID_SIGS.branch <= '0'';
+        ID_SIGS.jr <= '0';
+        ID_SIGS.zero_extend <= '0';
+
+        --EX all to 0's except jump and link
+        EX_SIGS.use_imm <= '0';
+        EX_SIGS.jump_and_link <= '1';
+
+        EX_SIGS.lui <= '0';
+        EX_SIGS.ALU_control_op <= alu_add;
+        EX_SIGS.multdiv <= mult;
+
+        EX_SIGS.write_hilo_result <= '0';
+        EX_SIGS.mfhi <= '0';
+        EX_SIGS.mflo <= '0';
+
+        --MEM ops are all 0's
+        MEM_SIGS.read_from_memory <= '0';
+        MEM_SIGS.write_to_memory <= '0';
+        MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+        --Have to wb
+				WB_SIGS.write_to_register <= '1';
+
+    end case;
 
   end process;
 
