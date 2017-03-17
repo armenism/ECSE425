@@ -5,7 +5,7 @@
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use signal_types.all
+use signal_types.all;
 
 entity EX_STAGE is
 
@@ -41,6 +41,7 @@ entity EX_STAGE is
     WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS
 
     );
+	end EX_STAGE;
 
 architecture arch of EX_STAGE is
 
@@ -53,7 +54,7 @@ architecture arch of EX_STAGE is
       OPERAND_B: in	 std_logic_vector (31 downto 0);
       OPERATION: in alu_operation; -->mult, div only to be used here from alu instruction types
       MULT_DIV_RESULT: out std_logic_vector (63 downto 0)
-    )
+    );
   end component;
 
   ------ALU component
@@ -64,7 +65,7 @@ architecture arch of EX_STAGE is
       data_B: in std_logic_vector (31 DOWNTO 0);
       shamt: in std_logic_vector (31 DOWNTO 0);
       RESULT: out std_logic_vector (31 DOWNTO 0)
-    )
+    );
 
   end component;
   -------------------------------------------------------------SIGNALS
@@ -126,8 +127,8 @@ architecture arch of EX_STAGE is
 
       if reset = '1' then
 
-        mult_div_low_bits <= '00000000000000000000000000000000';
-        mult_div_hi_bits <= '00000000000000000000000000000000';
+        mult_div_low_bits <= "00000000000000000000000000000000";
+        mult_div_hi_bits <= "00000000000000000000000000000000";
 
       elsif rising_edge(clk) then
 
@@ -149,9 +150,9 @@ architecture arch of EX_STAGE is
       --Resetting all output to 0
   		if reset = '1' then
 
-  			EX_ALU_result_out <= '00000000000000000000000000000000';
-  			EX_write_data_out <= '00000000000000000000000000000000';
-  			EX_destination_reg_RD_out <= '00000';
+  			EX_ALU_result_out <= "00000000000000000000000000000000";
+  			EX_write_data_out <= "00000000000000000000000000000000";
+  			EX_destination_reg_RD_out <= "00000";
         MEM_STAGE_CONTROL_SIGNALS_out <= ('0','0');
         WB_STAGE_CONTROL_SIGNALS_out <= (OTHERS => '0');
 

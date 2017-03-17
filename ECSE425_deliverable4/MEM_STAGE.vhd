@@ -7,7 +7,7 @@
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use signal_types.all
+use work.signal_types.all;
 
 entity MEM_STAGE is
 
@@ -45,7 +45,7 @@ entity MEM_STAGE is
 
   );
 
-end entity;
+end MEM_STAGE;
 
 
 architecture arch of MEM_STAGE is
@@ -70,7 +70,7 @@ architecture arch of MEM_STAGE is
 	signal intermediate_data_out : std_logic_vector (31 downto 0);
   --Memory module related signals
 
-  signal clock_for_memory: std_logic,
+  signal clock_for_memory: std_logic;
   signal address_for_memory: INTEGER RANGE 0 TO ram_size-1;
   signal data_read_from_memory: INTEGER RANGE 0 TO ram_size-1;
   signal data_to_write_to_memory: INTEGER RANGE 0 TO ram_size-1;
@@ -92,8 +92,8 @@ begin
   --Main memory module portmap
   main_memory : DataMEM
     port map(
-    clock: => clock_for_memory,
-    writedata: => data_to_write_to_memory,
+    clock => clock_for_memory,
+    writedata => data_to_write_to_memory,
     address => address_for_memory,
     memwrite => do_mem_write,
     memread => do_mem_read,
@@ -117,8 +117,16 @@ begin
       address_for_memory <= unsigned(ALU_output_from_EX(14 downto 0));
 
       --Set signals according to the MEM control signals if its a write or a read
-      do_mem_read <= '1' when MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1';
-      do_mem_write <= '1' when MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1';
+		if (MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1') then
+			do_mem_read <= '1';
+		end if;
+		if (MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1') then
+			do_mem_write <= '1';
+		end if;
+		
+		--Cant do conditional statements in process
+--    do_mem_read <= '1' when (MEM_STAGE_CONTROL_SIGNALS.read_from_memory == '1') else '0';
+--    do_mem_write <= '1' when (MEM_STAGE_CONTROL_SIGNALS.write_to_memory == '1') else '0';
 
       --TODO: make compatible 32bit data from ALU or register to be written to memory (FOR READ AND WRITE)
       --   32 BIT                     --8 BIT
