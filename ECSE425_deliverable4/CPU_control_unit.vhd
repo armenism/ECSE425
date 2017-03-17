@@ -61,7 +61,7 @@ architecture control of CPU_control_unit is
 begin
 
  --Process decoding the instruction type based on op code and funct (preprocessing for control assignment)
- generate_control: process(funct,op_code):
+ generate_control: process(funct,op_code)
 
   begin
 
@@ -71,7 +71,7 @@ begin
       when "000000" =>
 
           --check funct field to distinguish the R-type op
-          case funct =>
+          case funct is
             --mult/div case
             when "011010" =>
                 instruction_type <= r_multi_div;
@@ -180,7 +180,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
   begin
 
     --Based on previously assigned instruction type, assign control.
-    case instruction_type
+    case instruction_type is
 
     -------------------------------------------------------------- R TYPE ARITHMETIC
     when r_arithmetic =>
@@ -199,8 +199,8 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       ID_SIGS.zero_extend <= '0';
 
       --Then set all EX signals to 0 (propagation purposes, imm and jl not cases since arithm r type)
-      EX_SIGS.imm_sel <= '0';
-      EX_SIGS.jump_link <= '0';
+      EX_SIGS.use_imm <= '0';
+      EX_SIGS.jump_and_link <= '0';
 
       --Now depending on funct code, set control accordingly
       --In this case, we set ALU operation belonging to EX stage (as signal).
@@ -227,7 +227,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
         --sra
         when "000011" => EX_SIGS.ALU_control_op <= alu_sra;
         --null
-        when others => EX_SIGS.ALU_control_op <= add_op;
+        when others => EX_SIGS.ALU_control_op <= alu_add;
 
       end case;
 
@@ -268,11 +268,11 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       --Actual operation
       case funct is
          --div
-        when "011010" => EX_SIGS.multdiv <= div_op;
+        when "011010" => EX_SIGS.multdiv <= div;
          --mult
-        when "011000" => EX_SIGS.multdiv <= mult_op;
+        when "011000" => EX_SIGS.multdiv <= mult;
          --others
-        when others => EX_SIGS.multdiv <= div_op;
+        when others => EX_SIGS.multdiv <= div;
 
       end case;
 
@@ -359,16 +359,16 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       case funct is
          --mfhi
         when "010000" =>
-          EX_SIGS.mfhi <= '1'';
-          EX_SIGS.mflo <= '0'';
+          EX_SIGS.mfhi <= '1';
+          EX_SIGS.mflo <= '0';
          --mflo
         when "010010" =>
           EX_SIGS.mfhi <= '0';
-          EX_SIGS.mflo <= '1'';
+          EX_SIGS.mflo <= '1';
          --others
         when others =>
           EX_SIGS.mfhi <= '0';
-          EX_SIGS.mflo <= '0'';
+          EX_SIGS.mflo <= '0';
 
       end case;
 
@@ -417,7 +417,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
         EX_SIGS.mflo <= '0';
 
 				--ALU ope in case of immediate arithmetic
-				case opcode IS
+				case op_code IS
           --addi
 					when "001000" => EX_SIGS.ALU_control_op <= alu_add;
           --andi
@@ -505,7 +505,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
 
         --Depending on op code now need to properly set signals for read, write
         --as well as the right back stage control.
-        case opcode is
+        case op_code is
           --lw
           when "100011" =>
             MEM_SIGS.read_from_memory <= '1';
@@ -534,7 +534,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
   				IF_SIGS.branch <= '1';
   				IF_SIGS.jump <= '0';
 
-          case opcode is
+          case op_code is
 
             --bne case
             when "000101" =>
@@ -547,7 +547,7 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
 
 
           --Then set all ID signals to 0 (except branch)
-          ID_SIGS.branch <= '1'';
+          ID_SIGS.branch <= '1';
           ID_SIGS.jr <= '0';
           ID_SIGS.zero_extend <= '0';
 
@@ -576,11 +576,11 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
       when j_jump =>
         --Jump case
         IF_SIGS.jump <= '1';
-        IF_SIGS.bne <= '0;
+        IF_SIGS.bne <= '0';
         IF_SIGS.branch <= '0';
 
         --Then set all ID signals to 0 (except branch)
-        ID_SIGS.branch <= '0'';
+        ID_SIGS.branch <= '0';
         ID_SIGS.jr <= '0';
         ID_SIGS.zero_extend <= '0';
 
@@ -610,11 +610,11 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
 			when j_jal =>
         --Jump case
         IF_SIGS.jump <= '1';
-        IF_SIGS.bne <= '0;
+        IF_SIGS.bne <= '0';
         IF_SIGS.branch <= '0';
 
         --Then set all ID signals to 0 (except branch)
-        ID_SIGS.branch <= '0'';
+        ID_SIGS.branch <= '0';
         ID_SIGS.jr <= '0';
         ID_SIGS.zero_extend <= '0';
 
