@@ -182,18 +182,18 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
     --Based on previously assigned instruction type, assign control.
     case instruction_type
 
-    -- R TYPE ARITHMETIC
+    -------------------------------------------------------------- R TYPE ARITHMETIC
     when r_arithmetic =>
 
     -- Applicable for normal r type arithmetic:add, sub, sub, slt, and, or, nor, xor
     -- Applicable for r type shifts: sll, srl, sra
 
-      --First set all IF signals to 0 (propagation purposes)
+      --First set all IF signals to 0 (propagation purposesm not a jump or branch)
       IF_SIGS.jump <= '0';
       IF_SIGS.bne <= '0';
       IF_SIGS.branch <= '0';
 
-      --Then set all ID signals to 0 (propagation purposes)
+      --Then set all ID signals to 0 (propagation purposes, not a jump or branch)
       ID_SIGS.branch <= '0';
       ID_SIGS.jr <= '0';
       ID_SIGS.zero_extend <= '0';
@@ -248,6 +248,138 @@ control_signal_assignemnt: process(instruction_type, funct, op_code)
 
       --Finally because its an R type, write back is needed.
       WB_CTRL_SIGS.write_to_register <= '1';
+      -------------------------------------------------------------- R TYPE ARITHMETIC (done)
+
+    -------------------------------------------------------------- R TYPE mult/div
+    when r_multi_div =>
+
+      --Applicable for mult and div
+
+      --Same as before, not a jump or branch, so all 0s
+      IF_SIGS.jump <= '0';
+      IF_SIGS.bne <= '0';
+      IF_SIGS.branch <= '0';
+
+      --Then set all ID signals to 0 (propagation purposes, not a jump or branch)
+      ID_SIGS.branch <= '0';
+      ID_SIGS.jr <= '0';
+      ID_SIGS.zero_extend <= '0';
+
+      --Actual operation
+      case funct is
+         --div
+        when "011010" => EX_SIGS.multdiv <= div_op;
+         --mult
+        when "011000" => EX_SIGS.multdiv <= mult_op;
+         --others
+        when others => EX_SIGS.multdiv <= null;
+
+      end case;
+
+      --No immediates, no jals
+      EX_SIGS.use_imm <= '0';
+      EX_SIGS.jump_and_link <= '0';
+
+      --No loads
+      EX_SIGS.lui <= '0';
+      EX_SIGS.ALU_control_op <= alu_add;
+
+      EX_SIGS.write_hilo_result <= '1';  --Set high or lwo bits write to 1 since we will be writing out higher or lower bits of the 64 but result
+      EX_SIGS.mfhi <= '0';
+      EX_SIGS.mflo <= '0';
+
+      --MEM ops are all 0's
+      MEM_SIGS.read_from_memory <= '0';
+      MEM_SIGS.write_to_memory <= '0';
+      MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+      --No writeback in this case, only hi-lo write
+      WB_CTRL_SIGS.reg_write <= '0';
+
+    -------------------------------------------------------------- R TYPE mult/div (done)
+
+    -------------------------------------------------------------- R TYPE jump register
+      when r_jump_register =>
+
+        --Same as before, but only now jump is set
+        IF_SIGS.jump <= '1';
+        IF_SIGS.bne <= '0';
+        IF_SIGS.branch <= '0';
+
+        --Same as before, but only now jump is set
+        ID_SIGS.branch <= '0';
+        ID_SIGS.jr <= '0';
+        ID_SIGS.zero_extend <= '0';
+
+        --Execute stage, all 0's
+        EX_SIGS.multdiv <= mult;
+        EX_SIGS.write_hilo_result <= '0';
+        EX_SIGS.mfhi <= '0';
+        EX_SIGS.mflo <= '0';
+        EX_SIGS.use_imm <= '0';
+        EX_SIGS.jump_and_link <= '0';
+
+        --No lui
+        EX_SIGS.lui <= '0';
+        EX_SIGS.ALU_control_op <= alu_add;
+
+        --MEM ops are all 0's
+        MEM_SIGS.read_from_memory <= '0';
+        MEM_SIGS.write_to_memory <= '0';
+        MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+        --No writeback in this case, only hi-lo write
+        WB_CTRL_SIGS.reg_write <= '0';
+    -------------------------------------------------------------- R TYPE jump register(done)
+
+    -------------------------------------------------------------- R TYPE mflo/mfhi
+    when r_hilo =>
+
+      --Same as before, not a jump or branch, so all 0s
+      IF_SIGS.jump <= '0';
+      IF_SIGS.bne <= '0';
+      IF_SIGS.branch <= '0';
+
+      --Then set all ID signals to 0 (propagation purposes, not a jump or branch)
+      ID_SIGS.branch <= '0';
+      ID_SIGS.jr <= '0';
+      ID_SIGS.zero_extend <= '0';
+
+      --Execute stage, all 0's
+      EX_SIGS.multdiv <= mult;
+      EX_SIGS.write_hilo_result <= '0';
+      EX_SIGS.use_imm <= '0';
+      EX_SIGS.jump_and_link <= '0';
+
+      --No lui
+      EX_SIGS.lui <= '0';
+      EX_SIGS.ALU_control_op <= alu_add;
+
+      --Actual operation
+      case funct is
+         --mfhi
+        when "010000" =>
+          EX_SIGS.mfhi <= '1'';
+          EX_SIGS.mflo <= '0'';
+         --mflo
+        when "010010" =>
+          EX_SIGS.mfhi <= '0';
+          EX_SIGS.mflo <= '1'';
+         --others
+        when others => EX_SIGS.multdiv <= null;
+
+      end case;
+
+      --MEM ops are all 0's
+      MEM_SIGS.read_from_memory <= '0';
+      MEM_SIGS.write_to_memory <= '0';
+      MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+      --Necessary to wb result
+      WB_CTRL_SIGS.reg_write <= '1';
+
+  -------------------------------------------------------------- R TYPE mflo/mfhi(done)
+
 
 
   end process;
