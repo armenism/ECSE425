@@ -47,7 +47,7 @@ entity CPU_control_unit is
     ID_SIGS: out ID_CTRL_SIGS;
     EX_SIGS: out EX_CTRL_SIGS;
     MEM_SIGS:  out MEM_CTRL_SIGS;
-    ctrl_WB: out WB_CTRL_SIGS
+    WB_CTRL_SIGS: out WB_CTRL_SIGS
   );
 end CPU_control_unit;
 
@@ -60,8 +60,7 @@ architecture control of CPU_control_unit is
 
 begin
 
---TODO: control process that generates control signals based on funct and op code
-
+ --Process decoding the instruction type based on op code and funct (preprocessing for control assignment)
  generate_control: process(funct,op_code):
 
   begin
@@ -176,6 +175,82 @@ begin
 
 end process;
 
+--Process responsible for control signal assignemnt for every stage
+control_signal_assignemnt: process(instruction_type, funct, op_code)
+  begin
+
+    --Based on previously assigned instruction type, assign control.
+    case instruction_type
+
+    -- R TYPE ARITHMETIC
+    when r_arithmetic =>
+
+    -- Applicable for normal r type arithmetic:add, sub, sub, slt, and, or, nor, xor
+    -- Applicable for r type shifts: sll, srl, sra
+
+      --First set all IF signals to 0 (propagation purposes)
+      IF_SIGS.jump <= '0';
+      IF_SIGS.bne <= '0';
+      IF_SIGS.branch <= '0';
+
+      --Then set all ID signals to 0 (propagation purposes)
+      ID_SIGS.branch <= '0';
+      ID_SIGS.jr <= '0';
+      ID_SIGS.zero_extend <= '0';
+
+      --Then set all EX signals to 0 (propagation purposes, imm and jl not cases since arithm r type)
+      EX_SIGS.imm_sel <= '0';
+      EX_SIGS.jump_link <= '0';
+
+      --Now depending on funct code, set control accordingly
+      --In this case, we set ALU operation belonging to EX stage (as signal).
+      case funct is
+
+        --add
+        when "100000" => EX_SIGS.ALU_control_op <= alu_add;
+        --sub
+        when "100010" => EX_SIGS.ALU_control_op <= alu_sub;
+        --and
+        when "100100" => EX_SIGS.ALU_control_op <= alu_and;
+        --nor
+        when "100111" => EX_SIGS.ALU_control_op <= alu_nor;
+        --or
+        when "100101" => EX_SIGS.ALU_control_op <= alu_or;
+        --xor
+        when "100110" => EX_SIGS.ALU_control_op <= alu_xor;
+        --slt
+        when "101010" => EX_SIGS.ALU_control_op <= alu_slt;
+        --sll
+        when "000000" => EX_SIGS.ALU_control_op <= alu_sll;
+        --srl
+        when "000010" => EX_SIGS.ALU_control_op <= alu_srl;
+        --sra
+        when "000011" => EX_SIGS.ALU_control_op <= alu_sra;
+        --null
+        when others => EX_SIGS.ALU_control_op <= null;
+
+      end case;
+
+      --Since not a lui operation, set to
+      EX_SIGS.lui <= '0';
+
+      --Since not a multiplication or division (only simple arithmetic operation) operation, set to 0 other
+      --signals for execute stage
+      EX_SIGS.mfhi <= '0';
+      EX_SIGS.mflo <= '0';
+      EX_SIGS.multdiv <= mult;
+      EX_SIGS.write_hilo_result <= '0';
+
+      --Also assign signals to MEM stage, all 0s in case or R arithmetic
+      MEM_SIGS.read_from_memory <= '0';
+      MEM_SIGS.write_to_memory <= '0';
+      MEM_SIGS.memory_bus <= '0'; --> will need eventually
+
+      --Finally because its an R type, write back is needed.
+      WB_CTRL_SIGS.write_to_register <= '1';
+
+
+  end process;
 
 
 end control;
