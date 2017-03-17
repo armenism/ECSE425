@@ -69,7 +69,7 @@ package signal_types is
 			use_imm		: std_logic;
 			jump_and_link	: std_logic;
 			ALU_control_op : alu_operation;
-			multdiv: std_logic;
+			multdiv: multiplication_unit;
 			mfhi: std_logic;
 			mflo: std_logic;
 			lui: std_logic;

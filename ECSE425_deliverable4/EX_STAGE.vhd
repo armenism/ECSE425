@@ -106,7 +106,7 @@ architecture arch of EX_STAGE is
     PORT MAP(
       OPERAND_A => EX_data_from_RS,
       OPERAND_B => EX_data_from_RT,
-      OPERATION => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
+      OPERATION => EX_STAGE_CONTROL_SIGNALS.multdiv,
       MULT_DIV_RESULT => mult_div_res
     );
 
@@ -132,7 +132,7 @@ architecture arch of EX_STAGE is
 
       elsif rising_edge(clk) then
 
-        if EX_STAGE_CONTROL_SIGNALS.multdiv = '1' then
+        if EX_STAGE_CONTROL_SIGNALS.write_hilo_result = '1' then
 
           mult_div_low_bits <= mult_div_res(31 DOWNTO 0);
           mult_div_hi_bits <= mult_div_res(63 DOWNTO 32);
