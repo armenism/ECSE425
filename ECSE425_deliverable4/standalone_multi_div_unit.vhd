@@ -6,7 +6,7 @@
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use signal_types.all;
+use work.signal_types.all;
 
 
 entity  standalone_multi_div_unit is
@@ -33,8 +33,8 @@ architecture arch OF standalone_multi_div_unit is
 
         elsif OPERATION = div then
 
-    			MULT_DIV_RESULT(31 downto 0) <= std_logic_vector( signed(source_A) / signed(source_B));
-          MULT_DIV_RESULT(63 downto 32) <= std_logic_vector( signed(source_A) mod signed(source_B));
+    			MULT_DIV_RESULT(31 downto 0) <= std_logic_vector( signed(OPERAND_A) / signed(OPERAND_B));
+          MULT_DIV_RESULT(63 downto 32) <= std_logic_vector( signed(OPERAND_A) mod signed(OPERAND_B));
 
     		end if;
 
