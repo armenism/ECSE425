@@ -206,7 +206,7 @@ BEGIN
 	pipeline : PROCESS (clock, rst)
 	BEGIN
 		IF rst = '1' THEN
-			ControlEX_out <= ('0', '0', alu_addi, '0', '0', '0');
+			ControlEX_out <= ('0', '0', alu_addi, mult, '0', '0', '0', '0');
 			ControlWB_out <= (OTHERS => '0');
 			ID_rs <= (OTHERS => '0');
 			ID_rt <= (OTHERS => '0');
@@ -218,7 +218,7 @@ BEGIN
 			--flush instruction after branch
 			IF stall = '0' AND branch_taken = '1' THEN 
 				--Insert NOP
-				ControlEX_out <= ('0', '0', alu_addi, '0', '0', '0');
+				ControlEX_out <= ('0', '0', alu_addi, mult, '0', '0', '0', '0');
 				ControlWB_out <= (OTHERS => '0');
 				
 			--pass instruction to next stage

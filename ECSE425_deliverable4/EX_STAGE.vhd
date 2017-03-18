@@ -5,40 +5,46 @@
 LIBRARY ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use signal_types.all;
+use work.signal_types.all;
 
 entity EX_STAGE is
 
   port(
 
-    --STAGE INPUTS
-    --operation related signals
-    clk: in std_logic;
-    rdy: in std_logic;
-    reset: in std_logic;
+		 --STAGE INPUTS
+		 --operation related signals
+		clk: in std_logic;
+		rdy: in std_logic;
+		reset: in std_logic;
 
-    --Register file related data
-    EX_data_from_RS: in std_logic_vector (31 downto 0);
-    EX_data_from_RT: in std_logic_vector (31 downto 0);
-    EX_shift_amount: in std_logic_vector (4 downto 0);
+		--Register file related data
+		EX_data_from_RS: in std_logic_vector (31 downto 0);
+		EX_data_from_RT: in std_logic_vector (31 downto 0);
+		EX_shift_amount: in std_logic_vector (4 downto 0);
 
-    EX_program_counter: in std_logic_vector (31 downto 0);
-    EX_sign_extended_IMM: in std_logic_vector (31 downto 0);
-    EX_destination_reg_RD: in std_logic_vector (4 downto 0);
+		EX_program_counter: in std_logic_vector (31 downto 0);
+		EX_sign_extended_IMM: in std_logic_vector (31 downto 0);
+		EX_destination_reg_RD: in std_logic_vector (4 downto 0);
 
-    --Control signals to current stage:
-    EX_STAGE_CONTROL_SIGNALS: in EX_CTRL_SIGS;
-    --Control signals to be passed to further stages:
+		--Control signals to current stage:
+		EX_STAGE_CONTROL_SIGNALS: in EX_CTRL_SIGS;
+		--Control signals to be passed to further stages:
 		MEM_STAGE_CONTROL_SIGNALS: in MEM_CTRL_SIGS;
 		WB_STAGE_CONTROL_SIGNALS: in WB_CTRL_SIGS;
-
-    --STAGE OUTPUTS
-    EX_ALU_result_out: out std_logic_vector (31 downto 0);
-    EX_write_data_out: out std_logic_vector (31 downto 0);
-    EX_destination_reg_RD_out : out std_logic_vector (4 downto 0);
-    --Control signals to be passed to further stages:
-    MEM_STAGE_CONTROL_SIGNALS_out: out MEM_CTRL_SIGS;
-    WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS
+		 
+		-- Bypass outputs
+		bp_EX_reg_write	: OUT STD_LOGIC;
+		bp_EX_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+		bp_EX_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
+		
+		--STAGE OUTPUTS
+		EX_ALU_result_out: out std_logic_vector (31 downto 0);
+		EX_write_data_out: out std_logic_vector (31 downto 0);
+		EX_destination_reg_RD_out : out std_logic_vector (4 downto 0);
+		
+		--Control signals to be passed to further stages:
+		MEM_STAGE_CONTROL_SIGNALS_out: out MEM_CTRL_SIGS;
+		WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS		
 
     );
 	end EX_STAGE;
@@ -51,8 +57,8 @@ architecture arch of EX_STAGE is
   component standalone_multi_div_unit is
     port(
       OPERAND_A: in std_logic_vector (31 downto 0);
-      OPERAND_B: in	 std_logic_vector (31 downto 0);
-      OPERATION: in alu_operation; -->mult, div only to be used here from alu instruction types
+      OPERAND_B: in std_logic_vector (31 downto 0);
+      OPERATION: in multiplication_unit; -->mult, div only to be used here from alu instruction types
       MULT_DIV_RESULT: out std_logic_vector (63 downto 0)
     );
   end component;
@@ -99,7 +105,7 @@ architecture arch of EX_STAGE is
     --Multiplexor for output of the stage from ALU. If control signals for EX stage are on for mflo or mfhi, route the high or low bits to output, else, regular ALU output is router to stage output
     ALU_res_to_mem <= mult_div_hi_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
       mult_div_low_bits	when EX_STAGE_CONTROL_SIGNALS.mflo = '1' else
-      ALU_result;
+      ALU_res_to_mem;
 
     -------------------------------------------------------------PORTMAPS
     mult_div : standalone_multi_div_unit
@@ -113,9 +119,9 @@ architecture arch of EX_STAGE is
     ALU_instance : ALU
 		PORT MAP(
       ALU_CONTROL_CODE => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
-			data_A => ALU_data_A,
-			data_B => ALU_data_B,
-			shamt => shamt_for_alu,
+		data_A => ALU_data_A,
+		data_B => ALU_data_B,
+		shamt => shamt_for_alu,
       RESULT => ALU_res_to_mem
 		);
 
@@ -145,16 +151,16 @@ architecture arch of EX_STAGE is
 
     ------Actual stage process
     EX_STAGE_PROCESS : process (clk, reset)
-  	begin
+		begin
 
       --Resetting all output to 0
   		if reset = '1' then
 
   			EX_ALU_result_out <= "00000000000000000000000000000000";
   			EX_write_data_out <= "00000000000000000000000000000000";
-  			EX_destination_reg_RD_out <= "00000";
-        MEM_STAGE_CONTROL_SIGNALS_out <= ('0','0');
-        WB_STAGE_CONTROL_SIGNALS_out <= (OTHERS => '0');
+			EX_destination_reg_RD_out <= "00000";
+			MEM_STAGE_CONTROL_SIGNALS_out <= ('0','0', '0');
+			WB_STAGE_CONTROL_SIGNALS_out <= (OTHERS => '0');
 
       --At rising edge, assign all the signals to output
   		elsif rising_edge(clk) then
@@ -165,7 +171,7 @@ architecture arch of EX_STAGE is
           WB_STAGE_CONTROL_SIGNALS_out <= WB_STAGE_CONTROL_SIGNALS;
 
           --Assign all the computed signals
-  				EX_ALU_result_out <= ALU_res_to_mem;
+				EX_ALU_result_out <= ALU_res_to_mem;
   				EX_write_data_out <= EX_data_from_RT; --> in case of LW and SW operations, data from this reg is stored in the MEM
   				EX_destination_reg_RD_out <= EX_destination_reg_RD;
 
@@ -174,6 +180,9 @@ architecture arch of EX_STAGE is
   		end if;
 
   	end process;
-    ------
+   
+	bp_EX_reg_write	<= WB_CTRL_SIGS.write_to_register;
+	bp_EX_reg_data 	<= ALU_res_to_mem;
+	bp_EX_dest_reg 	<= EX_destination_reg_RD;
 
   end arch;
