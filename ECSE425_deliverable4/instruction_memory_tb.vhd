@@ -16,18 +16,19 @@ COMPONENT instruction_memory IS
 	PORT (
 		clock: IN STD_LOGIC;
 		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		address: IN INTEGER RANGE 0 TO ram_size-1; -- This is the PC
+		address: IN STD_LOGIC_VECTOR (31 DOWNTO 0); -- This is the PC
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
-		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		ready_to_use: OUT STD_LOGIC
+		done_writing: IN STD_LOGIC;
+		ready_to_use: OUT STD_LOGIC;
+		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
 	);
 END COMPONENT;
 
     CONSTANT clk_period : time := 1 ns;
     CONSTANT ram_size : integer := 1024;
     SIGNAL clock : std_logic := '0';
-    SIGNAL address: INTEGER RANGE 0 TO ram_size-1;
+    SIGNAL address: STD_LOGIC_VECTOR (31 DOWNTO 0);;
     SIGNAL memwrite: STD_LOGIC := '0';
     SIGNAL memread: STD_LOGIC := '0';
     SIGNAL readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
