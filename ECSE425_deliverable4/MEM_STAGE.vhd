@@ -38,10 +38,11 @@ entity MEM_STAGE is
     --STAGE OUTPUTS
     --Data read from memory/ALU
     data_out_to_WB: out std_logic_vector(31 downto 0);
-    destination_reg_RD_out: out std_logic_vector (4 downto 0);
+    MEM_destination_reg_RD_out: out std_logic_vector (4 downto 0);
 
     --To be passed to WB stage
-    WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS;
+
+     MEM_WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS
 	 
 	 --Bypass outputs
 		bp_MEM_reg_write	: OUT STD_LOGIC;
@@ -128,7 +129,7 @@ begin
 		if (MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1') then
 			do_mem_write <= '1';
 		end if;
-		
+
 		--Cant do conditional statements in process
 --    do_mem_read <= '1' when (MEM_STAGE_CONTROL_SIGNALS.read_from_memory == '1') else '0';
 --    do_mem_write <= '1' when (MEM_STAGE_CONTROL_SIGNALS.write_to_memory == '1') else '0';
@@ -153,16 +154,16 @@ begin
   		if reset = '1' then
 
         data_out_to_WB <= (others => '0');
-        destination_reg_RD_out <= (others => '0');
-  			WB_STAGE_CONTROL_SIGNALS_out <= (others => '0');
+        MEM_destination_reg_RD_out <= (others => '0');
+  			MEM_WB_STAGE_CONTROL_SIGNALS_out <= (others => '0');
 
   		elsif rising_edge(clk) then
 
   			if rdy = '1' then
 
           data_out_to_WB <= intermediate_data_out;
-          destination_reg_RD_out <= destination_reg_RD;
-          WB_STAGE_CONTROL_SIGNALS_out <= WB_STAGE_CONTROL_SIGNALS;
+          MEM_destination_reg_RD_out <= destination_reg_RD;
+          MEM_WB_STAGE_CONTROL_SIGNALS_out <= WB_STAGE_CONTROL_SIGNALS;
 
   			end if;
 
