@@ -10,17 +10,14 @@ ENTITY Instruction_Fetch IS
 								Reset									: IN	STD_LOGIC;
 								Init									: IN 	STD_LOGIC;
 								Ready									: IN	STD_LOGIC;
+								Memory_Bus_Data				: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 								IF_Stall							: IN  STD_LOGIC; --stall from ID if needed
 								ID_Branch_Zero				: IN 	STD_LOGIC;
 								ID_Branch_Address			: IN	STD_LOGIC_VECTOR (31 DOWNTO 0);
 								Branch_Taken					: OUT STD_LOGIC; --signal to ID to flush address
 								IF_PC									: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --next address
-								IF_Instruction				: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-								Memory_Bus_Address		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-								Memory_Bus_Read				: OUT STD_LOGIC;
-								Memory_Bus_Write			: OUT	STD_LOGIC;
-								Memory_Word 					: OUT STD_LOGIC;
-								Memory_Bus_Data				: INOUT STD_LOGIC_VECTOR (31 DOWNTO 0)
+								IF_Instruction				: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
+								
 	);
 END ENTITY;
 
@@ -106,14 +103,5 @@ BEGIN
 	Memory_Bus_Data <= (OTHERS => 'Z');
 
 	Instruction <= Memory_Bus_Data;
-
-	Memory_Bus_Address <= PC WHEN Dont_Use = '0' ELSE (OTHERS => 'Z');
-
-	Memory_Bus_Read <= '1' WHEN Dont_Use = '0' ELSE 'Z';
-
-	Memory_Bus_Write <= '0' WHEN Dont_Use = '0' ELSE 'Z';
-
-	--make sure insturctions are in words
-	Memory_Word <= '1' WHEN Dont_Use = '0' ELSE 'Z';
 
 END behavioural;
