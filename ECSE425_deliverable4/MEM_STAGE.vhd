@@ -41,7 +41,12 @@ entity MEM_STAGE is
     destination_reg_RD_out: out std_logic_vector (4 downto 0);
 
     --To be passed to WB stage
-    WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS
+    WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS;
+	 
+	 --Bypass outputs
+		bp_MEM_reg_write	: OUT STD_LOGIC;
+		bp_MEM_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+		bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
 
   );
 
@@ -164,5 +169,9 @@ begin
       end if;
 
   end process;
+  
+	bp_MEM_reg_write <= WB_STAGE_CONTROL_SIGNALS.write_to_register;
+	bp_MEM_reg_data  <= data_out_to_WB;
+	bp_MEM_dest_reg  <= destination_reg_RD;
 
 end arch;

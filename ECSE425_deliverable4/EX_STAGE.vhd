@@ -10,7 +10,6 @@ use work.signal_types.all;
 entity EX_STAGE is
 
   port(
-
 		 --STAGE INPUTS
 		 --operation related signals
 		clk: in std_logic;
@@ -181,8 +180,8 @@ architecture arch of EX_STAGE is
 
   	end process;
    
-	bp_EX_reg_write	<= WB_CTRL_SIGS.write_to_register;
+	bp_EX_reg_write	<= WB_STAGE_CONTROL_SIGNALS.write_to_register;
 	bp_EX_reg_data 	<= ALU_res_to_mem;
 	bp_EX_dest_reg 	<= EX_destination_reg_RD;
 
-  end arch;
+end arch;
