@@ -15,17 +15,17 @@ ENTITY InstructionMEM IS
 		address: IN INTEGER RANGE 0 TO ram_size-1; -- This is the PC
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
-		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		waitrequest: OUT STD_LOGIC
-	);
+		done_writing: IN STD_LOGIC;
+		ready_to_use: OUT STD_LOGIC;
+		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0));
 END InstructionMEM;
 
 ARCHITECTURE rtl OF InstructionMEM IS
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL ram_block: MEM;
+	SIGNAL data_to_be_read: STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL read_address_reg: INTEGER RANGE 0 to ram_size-1;
-	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
-	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
+	SIGNAL ready_signal: std_logic := '0';
 BEGIN
 	--This is the main section of the SRAM model
 	mem_process: PROCESS (clock)
@@ -42,29 +42,21 @@ BEGIN
 			IF (memwrite = '1') THEN
 				ram_block(address) <= writedata;
 			END IF;
-		read_address_reg <= address;
+			IF (memread = '1' AND done_writing = '1') THEN
+				data_to_be_read <= ram_block(address);
+			END IF;
 		END IF;
 	END PROCESS;
-	readdata <= ram_block(read_address_reg);
+	readdata <= data_to_be_read;
 
 
-	--The waitrequest signal is used to vary response time in simulation
-	--Read and write should never happen at the same time.
-	waitreq_w_proc: PROCESS (memwrite)
+	issue_done_writing: PROCESS (done_writing)
 	BEGIN
-		IF(memwrite'event AND memwrite = '1')THEN
-			write_waitreq_reg <= '0' after mem_delay, '1' after mem_delay + clock_period;
-
+		IF(done_writing'event AND done_writing = '1')THEN
+			ready_signal <= '1';
 		END IF;
 	END PROCESS;
-
-	waitreq_r_proc: PROCESS (memread)
-	BEGIN
-		IF(memread'event AND memread = '1')THEN
-			read_waitreq_reg <= '0' after mem_delay, '1' after mem_delay + clock_period;
-		END IF;
-	END PROCESS;
-	waitrequest <= write_waitreq_reg and read_waitreq_reg;
+	ready_to_use <= ready_signal;
 
 
 END rtl;
