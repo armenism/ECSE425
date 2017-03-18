@@ -28,7 +28,7 @@ END COMPONENT;
     CONSTANT clk_period : time := 1 ns;
     CONSTANT ram_size : integer := 1024;
     SIGNAL clock : std_logic := '0';
-    SIGNAL address: STD_LOGIC_VECTOR (31 DOWNTO 0);;
+    SIGNAL address: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL memwrite: STD_LOGIC := '0';
     SIGNAL memread: STD_LOGIC := '0';
     SIGNAL readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -52,7 +52,7 @@ DUT:
 								ready_to_use,
 								readdata
 								);
-
+							
 test_process : process
 	FILE ex_file: text;
   VARIABLE current_line: line;
@@ -62,7 +62,7 @@ test_process : process
 	BEGIN
 		memwrite<='1';
 		--open file: path specified in the second argument
-		file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\cdibet\My Documents\Ecse 425\Deliverable 4\output_files\program.txt", READ_MODE);
+		file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
 		--Read through 1024 lines of text file and save to memory
 		while not endfile(ex_file) and i < 1024 loop
 			clock <= '0';
@@ -77,8 +77,12 @@ test_process : process
 		END LOOP;
 
 		memwrite <= '0';
-		clock <= '0';
 		done_writing <= '1';
+		clock <= '0';
+		WAIT FOR clk_period/2;
+		clock <= '1';
+		WAIT FOR clk_period/2;
+		clock <= '0';
 		WAIT FOR clk_period/2;
 		clock <= '1';
 		--tell InstructionMEM writing is done
