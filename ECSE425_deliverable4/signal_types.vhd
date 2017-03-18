@@ -45,7 +45,7 @@ package signal_types is
 																	 i_lui,
 																	 i_br,
 								  							 	 j_jump,
-																	 j_jal)
+																	 j_jal);
 
   --SIGNAL TYPES FOR INSTRUCTION FETCH STAGE CONTROL SIGNALS
 	type IF_CTRL_SIGS is
