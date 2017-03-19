@@ -365,7 +365,7 @@ BEGIN
 			WB_STAGE_CONTROL_SIGNALS => EX_ctrl_WB,
 			MEM_STAGE_CONTROL_SIGNALS => EX_ctrl_MEM,
 			ALU_output_from_EX => EX_ALU,
-			data_to_write_from_EX =>  ,
+			data_to_write_from_EX => EX_data,
 			destination_reg_RD => EX_dest_reg,
 
 

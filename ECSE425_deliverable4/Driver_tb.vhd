@@ -81,8 +81,8 @@ END COMPONENT;
 	 --Instruction memory signals
     SIGNAL address: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL memwrite: STD_LOGIC := '0';
-    SIGNAL memread: STD_LOGIC := '0';
-    SIGNAL readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 SIGNAL memread: STD_LOGIC := '0';
+    SIGNAL inst_readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL writedata: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL done_writing: STD_LOGIC := '0';
 	 SIGNAL mem_ready_to_use: STD_LOGIC := '0';
@@ -91,6 +91,8 @@ END COMPONENT;
 	 SIGNAL datamem_address: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	 SIGNAL data_mem_data_in:  STD_LOGIC_VECTOR (31 DOWNTO 0);
 	 SIGNAL data_mem_data_out: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 SIGNAL do_mem_write	:  STD_LOGIC;
+	 SIGNAL do_mem_read	:  STD_LOGIC;
 	 	 
 	 --Reset
 	 SIGNAL reset : STD_LOGIC := '0';
@@ -104,13 +106,13 @@ Main_Driver:
 			 clk => clock,
 			 rst => reset,
 	       instr_mem_address => address,
-          instr_mem_data => readdata, 
-			 data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 waitrequest_from_memory: in STD_LOGIC; 
-			 data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 address_for_memory : out INTEGER RANGE 0 TO ram_size-1;
-			 do_mem_write	: out STD_LOGIC;
-			 do_mem_read	: out STD_LOGIC
+          instr_mem_data => inst_readdata, 
+			 data_read_from_memory => data_read_from_memory,
+			 waitrequest_from_memory => waitrequest_from_memory,
+			 data_to_write_to_memory => data_to_write_to_memory,
+			 address_for_memory => address_for_memory,
+			 do_mem_write => do_mem_write,
+			 do_mem_read  => do_mem_read
 	);
 
 --------------------------------------------------INSTR MEM PORT MAP
@@ -127,7 +129,7 @@ Instruction_Memory:
 							memread,
 							done_writing,
 							mem_ready_to_use,
-							readdata -> instr_mem_data
+							inst_readdata
 					 );
 --------------------------------------------------DATA MEM PORT MAP
 Data_Memory:
@@ -143,6 +145,19 @@ Data_Memory:
 		readdata => data_read_from_memory,
 		waitrequest => waitrequest_from_memory
 	);	
+	
+	
+	  clock_process : process
+
+--------------------------------------------------CLOCK PROCESS		
+  BEGIN
+
+    wait for clk_period/2;
+    clock <= not clock;
+    wait for clk_period/2;
+    clock <= not clock;
+
+  END process;
 
 --------------------------------------------------MAIN PROCESS					
 test_process : process
@@ -163,53 +178,30 @@ test_process : process
 			file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
 			--Read through 1024 lines of text file and save to memory
 			while not endfile(ex_file) and i < 1024 loop
-				clock <= not clock;
 				address<= std_logic_vector(to_unsigned(i,32));
 				readline (ex_file, current_line);
 				read (current_line, data_line);
 				writedata <= data_line;
-				--WAIT FOR clk_period/2;
-				clock <= not clock;
+				WAIT FOR clk_period;
 				i := i + 1;
-				WAIT FOR clk_period/2;
+				WAIT FOR clk_period;
 			END LOOP;
 			
 			file_close (ex_file);
 			memwrite <= '0';
 			done_writing <= '1';
-			clock <= not clock;
 			--tell InstructionMEM writing is done
 		END IF;
 		
 		--Once the main memory is done filling up, we can launch CPU simulation
-		IF (mem_ready_to_use = '1') THEN
 		
+		IF (mem_ready_to_use = '1') THEN
+			--As soon as done writing to instruction memory, can read instructions.
+			memread <='1';
 			reset <= '1';
 			WAIT FOR clk_period;
 			reset <= '0';
 			wait for clk_period*100000;		
-			wait;
-			
---			i := 8;
---			memread <= '1';
---			while i < 41 loop
---				clock <= not clock;
---				address<= std_logic_vector(to_unsigned(i,32));
---				WAIT FOR clk_period/2;
---				clock <= not clock;
---				i := i + 1;
---				WAIT FOR clk_period/2;
---			END LOOP;
---			
---			address <= std_logic_vector(to_unsigned(10,32));
---			
---			clock <= not clock;
---			WAIT FOR clk_period/2;
---			clock <= not clock;
---			WAIT FOR clk_period/2;
---			clock <= not clock;
---			WAIT FOR clk_period/2;
-		
 		END IF;
 
 	END PROCESS;
