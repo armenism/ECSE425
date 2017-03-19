@@ -42,7 +42,7 @@ entity MEM_STAGE is
 
     --To be passed to WB stage
 
-     MEM_WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS
+     MEM_WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS;
 	 
 	 --Bypass outputs
 		bp_MEM_reg_write	: OUT STD_LOGIC;

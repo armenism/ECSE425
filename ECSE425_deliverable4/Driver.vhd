@@ -56,7 +56,7 @@ ARCHITECTURE arch OF Driver IS
 
 
   --Port map for the Instruction Fetch Stage
-	COMPONENT Instruction_Fetch IS
+	COMPONENT IF_STAGE IS
 		PORT (
 					Clock	: IN	STD_LOGIC;
 					Reset	: IN	STD_LOGIC;
@@ -66,7 +66,7 @@ ARCHITECTURE arch OF Driver IS
 					ID_Branch_Zero : IN 	STD_LOGIC;
 					ID_Branch_Address : IN	STD_LOGIC_VECTOR (31 DOWNTO 0);
 					IF_Control : IN	IF_CTRL_SIGS;
-          Input_From_Instruction_Memory	: IN STD_LOGIC_VECTOR (31 DOWNTO 0)
+					Input_From_Instruction_Memory	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 					Branch_Taken : OUT STD_LOGIC;
 					IF_PC	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 					IF_Instruction : OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
@@ -78,7 +78,7 @@ ARCHITECTURE arch OF Driver IS
 	SIGNAL IF_instruction : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL branch_taken : STD_LOGIC;
 
-	COMPONENT instruction_decode  IS
+	COMPONENT ID_STAGE  IS
 		PORT (
 			clock 			: IN	STD_LOGIC;
 			rst				: IN	STD_LOGIC;
@@ -129,7 +129,7 @@ ARCHITECTURE arch OF Driver IS
 	END COMPONENT;
 
   -- All the intermediate signals that come from the instruction decode stage
-  SIGNAL ID_rs			: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL ID_rs			: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL ID_rt  			: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL ID_IMM			: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL ID_shamt		: STD_LOGIC_VECTOR (4 DOWNTO 0);
@@ -173,7 +173,7 @@ ARCHITECTURE arch OF Driver IS
 			 EX_destination_reg_RD_out : out std_logic_vector (4 downto 0);
 			 --Control signals to be passed to further stages:
 			 MEM_STAGE_CONTROL_SIGNALS_out	: out MEM_CTRL_SIGS;
-			 WB_STAGE_CONTROL_SIGNALS_out		: out WB_CTRL_SIGS
+			 WB_STAGE_CONTROL_SIGNALS_out		: out WB_CTRL_SIGS;
 
 			--Data bypassing to ID --TODO HI LO bypassing
 			bp_EX_reg_write	: OUT STD_LOGIC;
@@ -217,7 +217,7 @@ ARCHITECTURE arch OF Driver IS
 			 MEM_destination_reg_RD_out: out std_logic_vector (4 downto 0);
 
 			 --To be passed to WB stage
-			 MEM_WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS
+			 MEM_WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS;
 
 			 --Data bypassing to ID --TODO HI LO bypassing
 			 bp_MEM_reg_write	: OUT STD_LOGIC;
@@ -256,7 +256,7 @@ BEGIN
 
   --Port mapping instruction fetch.
   --Gets inputs from control and branch signals and outputs the instruction to be decoded
-	IF_map : IF
+	IF_map : IF_STAGE
 		PORT MAP (
   			Clock => clk,
   			Reset => rst,
@@ -274,7 +274,7 @@ BEGIN
 
   --Instruction decode map.
   --Gets inputs from the instruction decode
-	ID_map : ID
+	ID_map : ID_STAGE
 		PORT MAP (
 			clk => clk,
 			rst => rst,
