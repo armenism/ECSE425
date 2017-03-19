@@ -115,6 +115,8 @@ begin
             --sll case
             when "000000" =>
                 instruction_type <= r_arithmetic;
+				when others =>
+					instruction_type <= r_arithmetic;
           end case;
 
 
