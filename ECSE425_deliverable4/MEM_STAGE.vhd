@@ -12,7 +12,7 @@ use work.signal_types.all;
 entity MEM_STAGE is
 
   generic(
-    ram_size : INTEGER := 32768;
+    ram_size : INTEGER := 8192;
     mem_delay : time := 10 ns;
     clock_period : time := 1 ns
   );
@@ -33,7 +33,7 @@ entity MEM_STAGE is
     --MEM stage control signals coming passed from EX stage. To be consumed here.
     --WB stage signals coming passed from EX stage. To be passed further to WB stage.
     MEM_STAGE_CONTROL_SIGNALS: in MEM_CTRL_SIGS;
-		WB_STAGE_CONTROL_SIGNALS: in WB_CTRL_SIGS;
+	 WB_STAGE_CONTROL_SIGNALS: in WB_CTRL_SIGS;
 
     --STAGE OUTPUTS
     --Data read from memory/ALU
@@ -41,14 +41,12 @@ entity MEM_STAGE is
     MEM_destination_reg_RD_out: out std_logic_vector (4 downto 0);
 
     --To be passed to WB stage
-
-     MEM_WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS;
+    MEM_WB_STAGE_CONTROL_SIGNALS_out: out WB_CTRL_SIGS;
 	 
-	 --Bypass outputs
-		bp_MEM_reg_write	: OUT STD_LOGIC;
-		bp_MEM_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
-
+    --Bypass outputs
+	 bp_MEM_reg_write	: OUT STD_LOGIC;
+	 bp_MEM_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
   );
 
 end MEM_STAGE;
@@ -62,11 +60,11 @@ architecture arch of MEM_STAGE is
   component DataMEM is
     port(
       clock: IN STD_LOGIC;
-      writedata: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+      writedata: IN STD_LOGIC_VECTOR (32 DOWNTO 0);
       address: IN INTEGER RANGE 0 TO ram_size-1;
       memwrite: IN STD_LOGIC;
       memread: IN STD_LOGIC;
-      readdata: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+      readdata: OUT STD_LOGIC_VECTOR (32 DOWNTO 0);
       waitrequest: OUT STD_LOGIC
     );
   end component;
@@ -78,7 +76,7 @@ architecture arch of MEM_STAGE is
 
   signal clock_for_memory: std_logic;
   signal address_for_memory: INTEGER RANGE 0 TO ram_size-1;
-  signal data_read_from_memory: INTEGER RANGE 0 TO ram_size-1;
+  signal data_read_from_memory: std_logic_vector (31 downto 0);
   signal data_to_write_to_memory: INTEGER RANGE 0 TO ram_size-1;
   signal do_mem_read: std_logic;
   signal do_mem_write: std_logic;
@@ -88,7 +86,6 @@ begin
 
   -------------------------------------------------------------MUXES
 
-  -- 32 BIT                     --8 BIT
   intermediate_data_out <= data_read_from_memory when MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1' else
     ALU_output_from_EX;
 
@@ -155,7 +152,7 @@ begin
 
         data_out_to_WB <= (others => '0');
         MEM_destination_reg_RD_out <= (others => '0');
-  			MEM_WB_STAGE_CONTROL_SIGNALS_out <= (others => '0');
+  		  MEM_WB_STAGE_CONTROL_SIGNALS_out <= (others => '0');
 
   		elsif rising_edge(clk) then
 

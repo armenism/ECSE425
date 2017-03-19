@@ -94,7 +94,7 @@ test_process : process
 		END IF;
 			
 		IF (mem_ready_to_use = '1') THEN
-			i := 0;
+			i := 8;
 			memread <= '1';
 			while i < 41 loop
 				clock <= not clock;
@@ -104,7 +104,19 @@ test_process : process
 				i := i + 1;
 				WAIT FOR clk_period/2;
 			END LOOP;
+			
+			address <= std_logic_vector(to_unsigned(10,32));
+			
+			clock <= not clock;
+			WAIT FOR clk_period/2;
+			clock <= not clock;
+			WAIT FOR clk_period/2;
+			clock <= not clock;
+			WAIT FOR clk_period/2;
+		
 		END IF;
+		
+		
 		
 		memread <= '0';
 

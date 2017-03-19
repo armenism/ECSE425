@@ -17,14 +17,14 @@ ENTITY Driver IS
 		rst				: 	IN  STD_LOGIC;
 
 		instr_mem_address	:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
-    instr_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
+      instr_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
 
-    data_mem_address: OUT INTEGER;                          --mem address destineed for data memory component
-    data_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);     --what we want to write to main memory component
-    data_mem_data_out  : out STD_LOGIC_VECTOR (31 DOWNTO 0); --what we want to read from main memory component
+      data_mem_address: OUT INTEGER;                          --mem address destineed for data memory component
+      data_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);     --what we want to write to main memory component
+      data_mem_data_out  : out STD_LOGIC_VECTOR (31 DOWNTO 0); --what we want to read from main memory component
 
-    mem_wr_done		:	IN	 STD_LOGIC;
-    mem_rd_ready	:	IN	 STD_LOGIC
+      mem_wr_done		:	IN	 STD_LOGIC;
+      mem_rd_ready	:	IN	 STD_LOGIC
 	);
 
 END Driver;
@@ -352,7 +352,7 @@ BEGIN
 			WB_STAGE_CONTROL_SIGNALS => EX_ctrl_WB,
 			MEM_STAGE_CONTROL_SIGNALS => EX_ctrl_MEM,
 			ALU_output_from_EX => EX_ALU,
-			data_to_write_from_EX => EX_data,
+			data_to_write_from_EX =>  ,
 			destination_reg_RD => EX_dest_reg,
 
 
