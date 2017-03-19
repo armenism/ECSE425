@@ -67,8 +67,8 @@ BEGIN
 			IF (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
 			AND IF_Control.branch = '1')
 			OR IF_Control.jump = '1')
-			AND Temp_Branch_Taken = '0'
-			THEN Temp_Branch_Taken <= '1';
+			AND Temp_Branch_Taken = '0' THEN 
+					Temp_Branch_Taken <= '1';
 			ELSE Temp_Branch_Taken <= '0';
 
 			END IF;
@@ -100,7 +100,7 @@ BEGIN
 	Stall <= IF_Stall OR (NOT Ready);
 	Dont_Use <= IF_Stall OR Init;
 
-	Memory_Bus_Data <= (OTHERS => 'Z');
+	--Memory_Bus_Data <= (OTHERS => 'Z');
 
 	Instruction <= Memory_Bus_Data;
 

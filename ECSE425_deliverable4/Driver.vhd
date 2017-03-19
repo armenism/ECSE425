@@ -33,7 +33,7 @@ ARCHITECTURE arch OF Driver IS
 
 	SIGNAL ready : STD_LOGIC;
 	SIGNAL init : STD_LOGIC;
-  SIGNAL IF_PC: STD_LOGIC_VECTOR (31 DOWNTO 0);
+  SIGNAL instruction_mem_data: STD_LOGIC_VECTOR (31 DOWNTO 0);
 
   --Control uni declaration
 	COMPONENT CPU_control_unit IS
@@ -56,7 +56,7 @@ ARCHITECTURE arch OF Driver IS
 
 
   --Port map for the Instruction Fetch Stage
-	COMPONENT IF_STAGE IS
+	COMPONENT Instruction_Fetch IS
 		PORT (
 					Clock	: IN	STD_LOGIC;
 					Reset	: IN	STD_LOGIC;
@@ -78,7 +78,7 @@ ARCHITECTURE arch OF Driver IS
 	SIGNAL IF_instruction : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL branch_taken : STD_LOGIC;
 
-	COMPONENT ID_STAGE  IS
+	COMPONENT instruction_decode  IS
 		PORT (
 			clock 			: IN	STD_LOGIC;
 			rst				: IN	STD_LOGIC;
@@ -238,10 +238,10 @@ ARCHITECTURE arch OF Driver IS
 -- Architecture begin, map every stage signal
 BEGIN
 
-	mem_address <= TO_INTEGER (UNSIGNED(mem_bus_addr));
+	--mem_address <= TO_INTEGER (UNSIGNED(mem_bus_addr));
 	ready <= '1'; -->
 	init <= '0';
-  IF_PC <= instr_mem_data;
+  instruction_mem_data <= instruction_mem_data;
 
   --Port mapping all the control signals
 	control_unit_map : CPU_control_unit
@@ -256,7 +256,7 @@ BEGIN
 
   --Port mapping instruction fetch.
   --Gets inputs from control and branch signals and outputs the instruction to be decoded
-	IF_map : IF_STAGE
+	IF_map : Instruction_Fetch
 		PORT MAP (
   			Clock => clk,
   			Reset => rst,
@@ -274,9 +274,9 @@ BEGIN
 
   --Instruction decode map.
   --Gets inputs from the instruction decode
-	ID_map : ID_STAGE
+	ID_map : instruction_decode
 		PORT MAP (
-			clk => clk,
+			clock => clk,
 			rst => rst,
 			rd_ready => mem_rd_ready,
 			wr_done => mem_wr_done,
@@ -299,14 +299,14 @@ BEGIN
 			ControlMEM_in => MEM_control_signals,
 			ControlWB_in => WB_control_signals,
 
-			MEM_busacccess_in => EX_ctrl_MEM.mem_bus_access,
+			MEM_busacccess_in => EX_ctrl_MEM.memory_bus,
 
 			ID_stall_IF	=> ID_stall_IF,
 			ID_br_zero => ID_br_zero,
 			ID_br_addr => ID_br_addr,
-			ID_EX_control_signals => ControlEX_out,
-			ID_MEM_control_signals	=> ControlMEM_out,
-			ID_WB_control_signals => ControlWB_out,
+			ControlEX_out => ControlEX_out,
+			ControlMEM_out	=> ControlMEM_out,
+			ControlWB_out => ControlWB_out,
 			ID_rs => ID_rs,
 			ID_rt => ID_rt,
 			ID_IMM => ID_IMM,
