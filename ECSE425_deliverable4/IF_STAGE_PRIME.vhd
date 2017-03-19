@@ -2,13 +2,13 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-USE work.Signal_Types.all;
+--USE work.Signal_Types.all;
 
 ENTITY Instruction_Fetch_Prime IS
 	PORT (				Clock									: IN	STD_LOGIC;
 								Reset									: IN	STD_LOGIC;
 								-- IF_Stall							: IN  STD_LOGIC; --stall from ID if needed
-								read_Instruction			: IN STD_LOGIC_VECTOR (31 DOWNTO 0)
+								read_Instruction			: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 								IF_PC									: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --next address
 								IF_Instruction				: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
 	);
@@ -35,12 +35,9 @@ BEGIN
 			IF Reset = '1' THEN
 				PC <= x"00000000";
 			ELSIF rising_edge(Clock) THEN
-				IF Init = '1' THEN
-					PC <= x"00000000";
-				ELSIF Stall = '0' THEN
-					PC <=  STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
-				END IF;
+				PC <=  STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
 			END IF;
+			
 		END IF;
 	END PROCESS;
 

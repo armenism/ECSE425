@@ -29,8 +29,8 @@ COMPONENT DriverPrime IS
   PORT (
 		clk				:	IN  STD_LOGIC;
 		rst				: IN  STD_LOGIC;
-    ready_to_use :    IN STD_LOGIC;
-    instr_mem_read  : IN STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
+      ready_to_use :    IN STD_LOGIC;
+      instr_mem_read  : IN STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
 		PC	            :	OUT STD_LOGIC_VECTOR (31 DOWNTO 0) --mem address destined for instruction memory component (PC in 32 bit now)
 
     -- data_mem_address: OUT INTEGER;                          --mem address destineed for data memory component
@@ -48,7 +48,7 @@ END COMPONENT;
     SIGNAL reset : std_logic := '0';
 
     --Instruction memory signals
-    SIGNAL address: STD_LOGIC_VECTOR (31 DOWNTO 0);
+    SIGNAL PC: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL memwrite: STD_LOGIC := '0';
     SIGNAL memread: STD_LOGIC := '0';
     SIGNAL readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -74,7 +74,7 @@ Instruction_Memory:
 					 (
 							clock,
 							writedata,
-							address,		--PC
+							PC,		--PC
 							memwrite,
 							memread,
 							done_writing,
@@ -83,16 +83,12 @@ Instruction_Memory:
 					 );
 
 Main_Driver:
-	Driver PORT MAP(
+	DriverPrime PORT MAP(
 			 clk => clock,
 			 rst => reset,
-       instr_mem_address => address,
-       instr_mem_data => readdata,
-			 data_mem_address => datamem_address,
-			 data_mem_data => data_mem_data_in,
-			 data_mem_data_out => data_mem_data_out,
-			 mem_wr_done => data_mem_write_done,
-			 mem_rd_ready	=> data_mem_read_done
+			 ready_to_use => mem_ready_to_use,
+			 instr_mem_read => readdata,
+			 PC => PC
 	);
 
 
@@ -116,7 +112,7 @@ test_process : process (clock, mem_ready_to_use)
   			file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
   			--Read through 1024 lines of text file and save to memory
   			IF not endfile(ex_file) and i < 1024 THEN
-  				address<= std_logic_vector(to_unsigned(i,32));
+  				PC<= std_logic_vector(to_unsigned(i,32));
   				readline (ex_file, current_line);
   				read (current_line, data_line);
   				writedata <= data_line;
