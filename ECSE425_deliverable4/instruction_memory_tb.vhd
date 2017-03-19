@@ -9,7 +9,7 @@ end instruction_memory_tb;
 
 architecture arch of instruction_memory_tb is
 
-COMPONENT instruction_memory IS
+COMPONENT InstructionMEM IS
 	GENERIC(
 		ram_size : INTEGER := 1024
 	);
@@ -34,12 +34,12 @@ END COMPONENT;
     SIGNAL readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL writedata: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL done_writing: STD_LOGIC := '0';
-		SIGNAL ready_to_use: STD_LOGIC := '0';
+	 SIGNAL mem_ready_to_use: STD_LOGIC := '0';
 
 BEGIN
 
 DUT:
-    instruction_memory GENERIC MAP(
+    InstructionMEM GENERIC MAP(
             ram_size => 1024
                 )
                 PORT MAP(
@@ -49,7 +49,7 @@ DUT:
 								memwrite,
 								memread,
 								done_writing,
-								ready_to_use,
+								mem_ready_to_use,
 								readdata
 								);
 							
@@ -60,33 +60,67 @@ test_process : process
 	VARIABLE data_line: std_logic_vector(31 downto 0);
 
 	BEGIN
-		memwrite<='1';
-		--open file: path specified in the second argument
-		file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
-		--Read through 1024 lines of text file and save to memory
-		while not endfile(ex_file) and i < 1024 loop
-			clock <= '0';
-			address<= std_logic_vector(to_unsigned(i,32));
-			readline (ex_file, current_line);
-			read (current_line, data_line);
-			writedata <= data_line;
+	  
+	  wait on mem_ready_to_use;
+	  
+		IF (mem_ready_to_use = '0') THEN
+		  memwrite<='1';
+			--open file: path specified in the second argument
+			file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
+			--Read through 1024 lines of text file and save to memory
+			while not endfile(ex_file) and i < 1024 loop
+				clock <= not clock;
+				address<= std_logic_vector(to_unsigned(i,32));
+				readline (ex_file, current_line);
+				read (current_line, data_line);
+				writedata <= data_line;
+				--WAIT FOR clk_period/2;
+				clock <= not clock;
+				i := i + 1;
+				WAIT FOR clk_period/2;
+			END LOOP;
+			
+			file_close (ex_file);
+			memwrite <= '0';
+			done_writing <= '1';
+			clock <= not clock;
 			WAIT FOR clk_period/2;
-			clock <= '1';
-			i := i + 1;
+			clock <= not clock;
 			WAIT FOR clk_period/2;
-		END LOOP;
-
-		memwrite <= '0';
-		done_writing <= '1';
-		clock <= '0';
-		WAIT FOR clk_period/2;
-		clock <= '1';
-		WAIT FOR clk_period/2;
-		clock <= '0';
-		WAIT FOR clk_period/2;
-		clock <= '1';
-		--tell InstructionMEM writing is done
+			clock <= not clock;
+			WAIT FOR clk_period/2;
+			clock <= not clock;
+			--tell InstructionMEM writing is done
+		END IF;
+			
+		IF (mem_ready_to_use = '1') THEN
+			i := 0;
+			memread <= '1';
+			while i < 41 loop
+				clock <= not clock;
+				address<= std_logic_vector(to_unsigned(i,32));
+				WAIT FOR clk_period/2;
+				clock <= not clock;
+				i := i + 1;
+				WAIT FOR clk_period/2;
+			END LOOP;
+		END IF;
+		
+		memread <= '0';
 
 	END PROCESS;
 
 end arch;
+
+
+
+
+
+
+
+
+
+
+
+
+

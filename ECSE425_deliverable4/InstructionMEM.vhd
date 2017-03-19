@@ -19,10 +19,12 @@ ENTITY InstructionMEM IS
 END InstructionMEM;
 
 ARCHITECTURE rtl OF InstructionMEM IS
+  
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL ram_block: MEM;
 	SIGNAL data_to_be_read: STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL ready_signal: std_logic := '0';
+	
 BEGIN
 	--This is the main section of the SRAM model
 	mem_process: PROCESS (clock)
@@ -47,12 +49,13 @@ BEGIN
 	readdata <= data_to_be_read;
 
 
-	issue_done_writing: PROCESS (done_writing)
+	issue_done_writing: PROCESS (clock, done_writing)
 	BEGIN
-		IF(done_writing'event AND done_writing = '1')THEN
-			ready_signal <= '1';
+		IF (clock'event AND clock = '1') THEN
+			ready_signal <= done_writing;
 		END IF;
 	END PROCESS;
+	
 	ready_to_use <= ready_signal;
 
 
