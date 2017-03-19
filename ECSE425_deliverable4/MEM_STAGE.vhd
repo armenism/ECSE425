@@ -46,7 +46,17 @@ entity MEM_STAGE is
     --Bypass outputs
 	 bp_MEM_reg_write	: OUT STD_LOGIC;
 	 bp_MEM_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
+	 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
+	
+	 --Interface sinals to and from driver that comminucates with the main memory 
+	 data_read_from_memory : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+    waitrequest_from_memory: IN STD_LOGIC;
+	 
+	 data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+    address_for_memory : OUT INTEGER RANGE 0 TO ram_size-1;
+    do_mem_write	: OUT STD_LOGIC;
+    do_mem_read	: OUT STD_LOGIC
+	 
   );
 
 end MEM_STAGE;
@@ -56,53 +66,17 @@ architecture arch of MEM_STAGE is
 
   -------------------------------------------------------------COMPONENTS
 
-  ------Main Memory component
-  component DataMEM is
-    port(
-      clock: IN STD_LOGIC;
-      writedata: IN STD_LOGIC_VECTOR (32 DOWNTO 0);
-      address: IN INTEGER RANGE 0 TO ram_size-1;
-      memwrite: IN STD_LOGIC;
-      memread: IN STD_LOGIC;
-      readdata: OUT STD_LOGIC_VECTOR (32 DOWNTO 0);
-      waitrequest: OUT STD_LOGIC
-    );
-  end component;
-
   -------------------------------------------------------------SIGNALS
   --Will map to memory data or the ALU output bypassing the memory
 	signal intermediate_data_out : std_logic_vector (31 downto 0);
-  --Memory module related signals
 
-  signal clock_for_memory: std_logic;
-  signal address_for_memory: INTEGER RANGE 0 TO ram_size-1;
-  signal data_read_from_memory: std_logic_vector (31 downto 0);
-  signal data_to_write_to_memory: INTEGER RANGE 0 TO ram_size-1;
-  signal do_mem_read: std_logic;
-  signal do_mem_write: std_logic;
-  signal waitrequest_from_memory:  STD_LOGIC;
-
+	
 begin
 
   -------------------------------------------------------------MUXES
 
   intermediate_data_out <= data_read_from_memory when MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1' else
     ALU_output_from_EX;
-
-
-  -------------------------------------------------------------PORTMAPS
-
-  --Main memory module portmap
-  main_memory : DataMEM
-    port map(
-    clock => clock_for_memory,
-    writedata => data_to_write_to_memory,
-    address => address_for_memory,
-    memwrite => do_mem_write,
-    memread => do_mem_read,
-    readdata => data_read_from_memory,
-    waitrequest => waitrequest_from_memory
-  );
 
   -------------------------------------------------------------PROCESSES
 
@@ -112,29 +86,22 @@ begin
 
     --Set inputs to memeory
     if rising_edge(clk) then
-
-      clock_for_memory <= clk;
+	 
       -- Address for the memory must be BYTE addressable. We have from 0 to 32767 bytes. The ALU output containing
       -- the address is a 32 bit address (at lw or sw operations). Truncate the address to use only the lower 15 bit.
       -- Also, convert the 15 bit address onto an integer, since memory acccepts integer as address.
-      address_for_memory <= unsigned(ALU_output_from_EX(14 downto 0));
-
+		address_for_memory <= to_integer(unsigned(ALU_output_from_EX(14 downto 0)));
+		
       --Set signals according to the MEM control signals if its a write or a read
 		if (MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1') then
 			do_mem_read <= '1';
 		end if;
+		
 		if (MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1') then
 			do_mem_write <= '1';
+			data_to_write_to_memory <= data_to_write_from_EX;
 		end if;
-
-		--Cant do conditional statements in process
---    do_mem_read <= '1' when (MEM_STAGE_CONTROL_SIGNALS.read_from_memory == '1') else '0';
---    do_mem_write <= '1' when (MEM_STAGE_CONTROL_SIGNALS.write_to_memory == '1') else '0';
-
-      --TODO: make compatible 32bit data from ALU or register to be written to memory (FOR READ AND WRITE)
-      --   32 BIT                     --8 BIT
-      data_to_write_to_memory <= data_to_write_from_EX;
-
+		
       --Once memory returns wait request, we have its output if memory read operation was performed.
       wait until rising_edge(waitrequest);
 

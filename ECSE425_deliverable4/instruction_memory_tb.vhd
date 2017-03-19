@@ -55,7 +55,7 @@ DUT:
 							
 test_process : process
 	FILE ex_file: text;
-  VARIABLE current_line: line;
+	VARIABLE current_line: line;
 	variable i : integer := 0;
 	VARIABLE data_line: std_logic_vector(31 downto 0);
 

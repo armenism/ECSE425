@@ -18,13 +18,15 @@ ENTITY Driver IS
 
 		instr_mem_address	:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
       instr_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
-
-      data_mem_address: OUT INTEGER;                          --mem address destineed for data memory component
-      data_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);     --what we want to write to main memory component
-      data_mem_data_out  : out STD_LOGIC_VECTOR (31 DOWNTO 0); --what we want to read from main memory component
-
-      mem_wr_done		:	IN	 STD_LOGIC;
-      mem_rd_ready	:	IN	 STD_LOGIC
+	 
+		--MEM stage signals necessary to communicate with the main memory residing in the test bench 
+		data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
+		waitrequest_from_memory: in STD_LOGIC; 
+		data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
+		address_for_memory : out INTEGER RANGE 0 TO ram_size-1;
+		do_mem_write	: out STD_LOGIC;
+		do_mem_read	: out STD_LOGIC
+	 
 	);
 
 END Driver;
@@ -222,7 +224,18 @@ ARCHITECTURE arch OF Driver IS
 			 --Data bypassing to ID --TODO HI LO bypassing
 			 bp_MEM_reg_write	: OUT STD_LOGIC;
 			 bp_MEM_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
+			 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
+			 
+			 	
+			 --Interface sinals to and from driver that comminucates with the main memory 
+			 data_read_from_memory : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+			 waitrequest_from_memory: IN STD_LOGIC;
+			 
+			 data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+			 address_for_memory : OUT INTEGER RANGE 0 TO ram_size-1;
+			 do_mem_write	: OUT STD_LOGIC;
+			 do_mem_read	: OUT STD_LOGIC
+	 
 		);
 	END COMPONENT;
 
@@ -278,8 +291,8 @@ BEGIN
 		PORT MAP (
 			clock => clk,
 			rst => rst,
-			rd_ready => mem_rd_ready,
-			wr_done => mem_wr_done,
+			rd_ready => waitrequest_from_memory,
+			wr_done => waitrequest_from_memory,
 			branch_taken => branch_taken,
 			WB_ctrl => MEM_WB_control_signals,
 			WB_data => MEM_data_out_to_WB,
@@ -362,7 +375,15 @@ BEGIN
 
 			bp_MEM_reg_write => bp_MEM_reg_write,
 			bp_MEM_reg_data => bp_MEM_reg_data,
-			bp_MEM_dest_reg => bp_MEM_dest_reg
+			bp_MEM_dest_reg => bp_MEM_dest_reg,
+			
+			data_read_from_memory =>data_read_from_memory,
+			waitrequest_from_memory => waitrequest_from_memory,
+			 
+			data_to_write_to_memory => data_to_write_to_memory,
+			address_for_memory => address_for_memory,
+			do_mem_write => do_mem_write,
+			do_mem_read	=> do_mem_read
 		);
 
 

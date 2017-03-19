@@ -9,6 +9,9 @@ end Driver_tb;
 
 architecture arch of Driver_tb is
 
+--------------------------------------------------COMPONENTS
+
+-- INSTRUCTION MEM COMPONENT
 COMPONENT InstructionMEM IS
 	GENERIC(
 		ram_size : INTEGER := 1024
@@ -25,6 +28,26 @@ COMPONENT InstructionMEM IS
 	);
 END COMPONENT;
 
+-- DATA MEM COMPONENT
+COMPONENT DataMEM IS
+	GENERIC(
+		ram_size : INTEGER := 8192;
+		mem_delay : time := 10 ns;
+		clock_period : time := 1 ns
+	);
+	PORT (
+		clock: IN STD_LOGIC;
+		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		address: IN INTEGER RANGE 0 TO ram_size-1;
+		memwrite: IN STD_LOGIC;
+		memread: IN STD_LOGIC;
+		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+		waitrequest: OUT STD_LOGIC
+	);
+END COMPONENT;
+
+
+-- MAIN CPU DRIVER COMPONENT
 COMPONENT Driver IS
 	GENERIC(
 		ram_size : INTEGER := 1024
@@ -32,17 +55,24 @@ COMPONENT Driver IS
 	PORT (
 	 clk:	IN  STD_LOGIC;
 	 rst: IN  STD_LOGIC;
+	 
+	 --INSTRUCTION MEM SINALS
 	 instr_mem_address: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
     instr_mem_data: in STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
 
-    data_mem_address: OUT INTEGER;                          --mem address destineed for data memory component
-    data_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);     --what we want to write to main memory component
-    data_mem_data_out  : out STD_LOGIC_VECTOR (31 DOWNTO 0); --what we want to read from main memory component
-
-    mem_wr_done		:	IN	 STD_LOGIC;
-    mem_rd_ready	:	IN	 STD_LOGIC
+	 
+	 --DATA MEM  SIGNALS stage signals necessary to communicate with the main memory residing in the test bench 
+	 data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 waitrequest_from_memory: in STD_LOGIC; 
+	 data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 address_for_memory : out INTEGER RANGE 0 TO ram_size-1;
+	 do_mem_write	: out STD_LOGIC;
+	 do_mem_read	: out STD_LOGIC
 	);
+	
 END COMPONENT;
+--------------------------------------------------COMPONENTS END
+
 
     CONSTANT clk_period : time := 1 ns;
     CONSTANT ram_size : integer := 1024;
@@ -61,16 +91,29 @@ END COMPONENT;
 	 SIGNAL datamem_address: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	 SIGNAL data_mem_data_in:  STD_LOGIC_VECTOR (31 DOWNTO 0);
 	 SIGNAL data_mem_data_out: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 
-	 SIGNAL data_mem_write_done: STD_LOGIC := '0';
-	 SIGNAL data_mem_read_done: STD_LOGIC := '0';
-	 
-	 
+	 	 
 	 --Reset
 	 SIGNAL reset : STD_LOGIC := '0';
 
+--------------------------------------------------BEGIN ARCH
 BEGIN
 
+--------------------------------------------------MAIN DRIVER PORT MAP
+Main_Driver:
+	Driver PORT MAP(
+			 clk => clock,
+			 rst => reset,
+	       instr_mem_address => address,
+          instr_mem_data => readdata, 
+			 data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
+			 waitrequest_from_memory: in STD_LOGIC; 
+			 data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
+			 address_for_memory : out INTEGER RANGE 0 TO ram_size-1;
+			 do_mem_write	: out STD_LOGIC;
+			 do_mem_read	: out STD_LOGIC
+	);
+
+--------------------------------------------------INSTR MEM PORT MAP
 Instruction_Memory:
     InstructionMEM GENERIC MAP(
             ram_size => 1024
@@ -84,24 +127,24 @@ Instruction_Memory:
 							memread,
 							done_writing,
 							mem_ready_to_use,
-							readdata
+							readdata -> instr_mem_data
 					 );
-					 
-Main_Driver:
-	Driver PORT MAP(
-			 clk => clock,
-			 rst => reset,
-	       instr_mem_address => address,
-          instr_mem_data => readdata, 
-			 data_mem_address => datamem_address,                   
-			 data_mem_data => data_mem_data_in,     
-			 data_mem_data_out => data_mem_data_out,
-			 mem_wr_done => data_mem_write_done,
-			 mem_rd_ready	=> data_mem_read_done
-	);
-	
-	
-							
+--------------------------------------------------DATA MEM PORT MAP
+Data_Memory:
+	DataMEM 	GENERIC MAP(
+		ram_size => 8192
+	)
+	PORT MAP (
+		clock => clock,
+		writedata => data_to_write_to_memory,
+		address => address_for_memory,
+		memwrite => do_mem_write,
+		memread =>do_mem_read,
+		readdata => data_read_from_memory,
+		waitrequest => waitrequest_from_memory
+	);	
+
+--------------------------------------------------MAIN PROCESS					
 test_process : process
 
 	FILE ex_file: text;
