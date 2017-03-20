@@ -65,7 +65,7 @@ architecture arch of EX_STAGE is
   ------ALU component
   component ALU is
     port(
-      ALU_CONTROL_CODE: in alu_operation; --> on of the types we defined in types, contains a subset of signals for ALU
+      ALU_OPERATION: in alu_operation; --> on of the types we defined in types, contains a subset of signals for ALU
       data_A: in std_logic_vector (31 DOWNTO 0); --when shift operation, ALU shifts B by shamt
       data_B: in std_logic_vector (31 DOWNTO 0);
       shamt: in std_logic_vector (31 DOWNTO 0);
@@ -117,7 +117,7 @@ architecture arch of EX_STAGE is
 
     ALU_instance : ALU
 		PORT MAP(
-      ALU_CONTROL_CODE => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
+      ALU_OPERATION => EX_STAGE_CONTROL_SIGNALS.ALU_control_op,
 		data_A => ALU_data_A,
 		data_B => ALU_data_B,
 		shamt => shamt_for_alu,

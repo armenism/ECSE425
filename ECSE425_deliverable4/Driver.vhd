@@ -23,7 +23,7 @@ ENTITY Driver IS
 		data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
 		waitrequest_from_memory: in STD_LOGIC; 
 		data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
-		address_for_memory : out INTEGER RANGE 0 TO ram_size-1;
+		address_for_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
 		do_mem_write	: out STD_LOGIC;
 		do_mem_read	: out STD_LOGIC
 	 
@@ -35,17 +35,20 @@ ARCHITECTURE arch OF Driver IS
 
 	SIGNAL ready : STD_LOGIC;
 	SIGNAL init : STD_LOGIC;
-  SIGNAL instruction_mem_data: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL data_to_write_to_memory_sig :  STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL address_for_memory_sig :  STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL do_mem_write_sig	:  STD_LOGIC;
+	SIGNAL do_mem_read_sig	:  STD_LOGIC;
 
   --Control uni declaration
 	COMPONENT CPU_control_unit IS
 		PORT (
-			instr 	: IN	STD_LOGIC_VECTOR (31 DOWNTO 0);
-			IF_control_signals 	: OUT IF_CTRL_SIGS;
-			ID_control_signals 	: OUT ID_CTRL_SIGS;
-			EX_control_signals 	: OUT EX_CTRL_SIGS;
-			MEM_control_signals : OUT MEM_CTRL_SIGS;
-			WB_control_signals 	: OUT WB_CTRL_SIGS
+			instruction 	: IN	STD_LOGIC_VECTOR (31 DOWNTO 0);
+			IF_SIGS 	: OUT IF_CTRL_SIGS;
+			ID_SIGS  	: OUT ID_CTRL_SIGS;
+			EX_SIGS  	: OUT EX_CTRL_SIGS;
+			MEM_SIGS  : OUT MEM_CTRL_SIGS;
+			WB_SIGS  	: OUT WB_CTRL_SIGS
 		);
 	END COMPONENT;
 
@@ -232,7 +235,7 @@ ARCHITECTURE arch OF Driver IS
 			 waitrequest_from_memory: IN STD_LOGIC;
 			 
 			 data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 address_for_memory : OUT INTEGER RANGE 0 TO ram_size-1;
+			 address_for_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 			 do_mem_write	: OUT STD_LOGIC;
 			 do_mem_read	: OUT STD_LOGIC
 	 
@@ -250,21 +253,20 @@ ARCHITECTURE arch OF Driver IS
 
 -- Architecture begin, map every stage signal
 BEGIN
-
+	
 	--mem_address <= TO_INTEGER (UNSIGNED(mem_bus_addr));
 	ready <= '1'; -->
 	init <= '0';
-  instruction_mem_data <= instruction_mem_data;
 
   --Port mapping all the control signals
 	control_unit_map : CPU_control_unit
 		PORT MAP (
-			instr => IF_instruction, --GETS FROM instruction fetch
-			IF_control_signals => IF_control_signals,
-			ID_control_signals => ID_control_signals,
-			EX_control_signals => EX_control_signals,
-			MEM_control_signals => MEM_control_signals,
-			WB_control_signals => WB_control_signals
+			instruction => IF_instruction, --GETS FROM instruction fetch
+			IF_SIGS => IF_control_signals,
+			ID_SIGS => ID_control_signals,
+			EX_SIGS => EX_control_signals,
+			MEM_SIGS => MEM_control_signals,
+			WB_SIGS => WB_control_signals
 		);
 
   --Port mapping instruction fetch.
@@ -380,11 +382,27 @@ BEGIN
 			data_read_from_memory =>data_read_from_memory,
 			waitrequest_from_memory => waitrequest_from_memory,
 			 
-			data_to_write_to_memory => data_to_write_to_memory,
-			address_for_memory => address_for_memory,
-			do_mem_write => do_mem_write,
-			do_mem_read	=> do_mem_read
+			data_to_write_to_memory => data_to_write_to_memory_sig,
+			address_for_memory => address_for_memory_sig,
+			do_mem_write => do_mem_write_sig,
+			do_mem_read	=> do_mem_read_sig
 		);
 
-
+	Handle_reset: Process(clk, rst)
+		begin
+			if rst = '1' then
+				instr_mem_address <=  "00000000000000000000000000000000";
+				data_to_write_to_memory <=  "00000000000000000000000000000000";
+				address_for_memory <=  "00000000000000000000000000000000";
+				do_mem_write	<= '0';
+				do_mem_read	<= '0';
+			else
+				instr_mem_address <= IF_PC;
+				--instr_mem_address <= x"00000000";
+				data_to_write_to_memory <= data_to_write_to_memory_sig;
+				address_for_memory <= address_for_memory_sig;
+				do_mem_write <= do_mem_write_sig;
+				do_mem_read <= do_mem_read_sig;
+		   end if;
+		end process;
 END arch;

@@ -10,7 +10,7 @@ ENTITY Instruction_Fetch IS
 								Reset									: IN	STD_LOGIC;
 								Init									: IN 	STD_LOGIC;
 								Ready									: IN	STD_LOGIC;
-								Memory_Bus_Data				: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+								Input_From_Instruction_Memory	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 								IF_Stall							: IN  STD_LOGIC; --stall from ID if needed
 								ID_Branch_Zero				: IN 	STD_LOGIC;
 								ID_Branch_Address			: IN	STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -43,19 +43,21 @@ BEGIN
 		ELSIF rising_edge(Clock) THEN
 			IF Init = '1' THEN
 				PC <= x"00000000";
-			ELSIF Stall = '0' THEN
+			--ELSIF Stall = '0' THEN
+			ELSE
 				PC <= Next_PC;
 			END IF;
 		END IF;
 	END PROCESS;
 
 	--Logic for new branch address.. gives PC+4 if no new branch
-	PC_Plus <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000004");
-	Next_PC <= ID_Branch_Address WHEN (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
-																AND IF_Control.branch = '1')
-																OR IF_Control.jump = '1')
-																AND Temp_Branch_Taken = '0'
-																ELSE PC_Plus;
+	PC_Plus <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001"); --was 4
+   Next_PC <= PC_Plus;
+--  ID_Branch_Address WHEN (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
+--																AND IF_Control.branch = '1')
+--																OR IF_Control.jump = '1')
+--																AND Temp_Branch_Taken = '0' ELSE 
+																
 
 
 	Branch_Logic : PROCESS (Clock, Reset)
@@ -88,9 +90,10 @@ BEGIN
 			IF Init = '1' THEN
 				IF_PC <= x"00000000";
 				IF_Instruction <= x"00000000";
-			ELSIF Stall = '0' THEN
-				IF_PC <= x"00000000";--PC_Plus;
+			--ELSIF Stall = '0' THEN
+			ELSE
 				IF_Instruction <= Instruction;
+				IF_PC <= PC;
 			END IF;
 		END IF;
 	END PROCESS;
@@ -100,8 +103,8 @@ BEGIN
 	Stall <= IF_Stall OR (NOT Ready);
 	Dont_Use <= IF_Stall OR Init;
 
-	--Memory_Bus_Data <= (OTHERS => 'Z');
+	--Input_From_Instruction_Memory <= (OTHERS => 'Z');
 
-	Instruction <= Memory_Bus_Data;
+	Instruction <= Input_From_Instruction_Memory;
 
 END behavioural;

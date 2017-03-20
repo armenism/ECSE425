@@ -53,7 +53,7 @@ entity MEM_STAGE is
     waitrequest_from_memory: IN STD_LOGIC;
 	 
 	 data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-    address_for_memory : OUT INTEGER RANGE 0 TO ram_size-1;
+    address_for_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
     do_mem_write	: OUT STD_LOGIC;
     do_mem_read	: OUT STD_LOGIC
 	 
@@ -70,7 +70,6 @@ architecture arch of MEM_STAGE is
   --Will map to memory data or the ALU output bypassing the memory
 	signal intermediate_data_out : std_logic_vector (31 downto 0);
 
-	
 begin
 
   -------------------------------------------------------------MUXES
@@ -81,7 +80,7 @@ begin
   -------------------------------------------------------------PROCESSES
 
   ------Memory operation process
-  MEMORY_PROCESS : process
+  MEMORY_PROCESS : process (clk, waitrequest_from_memory)
   begin
 
     --Set inputs to memeory
@@ -90,7 +89,7 @@ begin
       -- Address for the memory must be BYTE addressable. We have from 0 to 32767 bytes. The ALU output containing
       -- the address is a 32 bit address (at lw or sw operations). Truncate the address to use only the lower 15 bit.
       -- Also, convert the 15 bit address onto an integer, since memory acccepts integer as address.
-		address_for_memory <= to_integer(unsigned(ALU_output_from_EX(14 downto 0)));
+		address_for_memory <= ALU_output_from_EX;
 		
       --Set signals according to the MEM control signals if its a write or a read
 		if (MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1') then
@@ -103,7 +102,7 @@ begin
 		end if;
 		
       --Once memory returns wait request, we have its output if memory read operation was performed.
-      wait until rising_edge(waitrequest);
+     -- wait until rising_edge(waitrequest_from_memory);
 
     end if;
 
@@ -136,7 +135,7 @@ begin
   end process;
   
 	bp_MEM_reg_write <= WB_STAGE_CONTROL_SIGNALS.write_to_register;
-	bp_MEM_reg_data  <= data_out_to_WB;
+	bp_MEM_reg_data  <= intermediate_data_out;
 	bp_MEM_dest_reg  <= destination_reg_RD;
 
 end arch;

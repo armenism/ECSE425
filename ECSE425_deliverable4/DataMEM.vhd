@@ -18,7 +18,7 @@ ENTITY DataMEM IS
 	PORT (
 		clock: IN STD_LOGIC;
 		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		address: IN INTEGER RANGE 0 TO ram_size-1;
+		address:  IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
 		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -29,7 +29,7 @@ END DataMEM;
 ARCHITECTURE rtl OF DataMEM IS
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL ram_block: MEM;
-	SIGNAL read_address_reg: INTEGER RANGE 0 to ram_size-1;
+	SIGNAL read_address_reg:  STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
 BEGIN
@@ -40,20 +40,20 @@ BEGIN
 		--This is a cheap trick to initialize the SRAM in simulation
 		IF(now < 1 ps)THEN
 			For i in 0 to ram_size-1 LOOP
-				ram_block(i) <= std_logic_vector(to_unsigned(i,31));
+				ram_block(i) <= std_logic_vector(to_unsigned(i,32));
 			END LOOP;
 		end if;
 
 		--This is the actual synthesizable SRAM block
 		IF (clock'event AND clock = '1') THEN
 			IF (memwrite = '1') THEN
-				ram_block(address) <= writedata;
+				ram_block(to_integer(signed(address))) <= writedata;
 			END IF;
 		read_address_reg <= address;
 		END IF;
 	END PROCESS;
 
-	readdata <= ram_block(read_address_reg);
+	readdata <= ram_block(to_integer(signed(read_address_reg)));
 
 
 	--The waitrequest signal is used to vary response time in simulation

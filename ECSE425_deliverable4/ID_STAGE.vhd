@@ -207,23 +207,27 @@ BEGIN
 	BEGIN
 		IF rst = '1' THEN
 			ControlEX_out <= ('0', '0', alu_addi, mult, '0', '0', '0', '0');
-			ControlWB_out <= (OTHERS => '0');
+			ControlMEM_out <= (OTHERS => '0');
+			ControlWB_out <= (OTHERS => '0'); 
 			ID_rs <= (OTHERS => '0');
 			ID_rt <= (OTHERS => '0');
 			ID_IMM <= (OTHERS => '0');
 			ID_dest_reg <= (OTHERS => '0');
-			PC_out <= (OTHERS => '0');
+			PC_out <=  "00000000000000000000000000000000";
 
 		ELSIF rising_edge(clock) THEN
 			--flush instruction after branch
 			IF stall = '0' AND branch_taken = '1' THEN
 				--Insert NOP
 				ControlEX_out <= ('0', '0', alu_addi, mult, '0', '0', '0', '0');
+				ControlMEM_out <= (OTHERS => '0');
 				ControlWB_out <= (OTHERS => '0');
 
 			--pass instruction to next stage
-			ELSIF stall = '0' THEN
+			--ELSIF stall = '0' THEN
+			ELSE
 				ControlEX_out <= ControlEX_in;
+				ControlMEM_out <= ControlMEM_in;
 				ControlWB_out <= ControlWB_in;
 				ID_rs <= rs_value;
 				ID_rt <= rt_value;
