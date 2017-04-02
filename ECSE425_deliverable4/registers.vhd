@@ -38,9 +38,9 @@ BEGIN
                 sram(i) <= "00000000000000000000000000000000";
             END LOOP;
 			else
-				read_data_1 <= std_logic_vector(to_unsigned(0, 27)) & reg_addr_1;
+				read_data_1 <= sram(to_integer(unsigned(reg_addr_1)));
 		  
-				read_data_2 <= std_logic_vector(to_unsigned(0, 27)) & reg_addr_2;
+				read_data_2 <= sram(to_integer(unsigned(reg_addr_2)));
            
 				--Write to register if write enable is 1, and the register we are writing to isn't the 0 register
 				IF (write_enable = '1') AND (write_reg /= "00000")  THEN
