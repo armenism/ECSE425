@@ -93,65 +93,69 @@ architecture alu_arch of ALU is
 		variable lui_temp : std_logic_vector(31 downto 0);
 		begin
 
-				case ALU_OPERATION is
+			if data_B /= "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" then
+					case ALU_OPERATION is
 
-					--CASE add,addi
-					when alu_add|alu_addi =>
-						intermediate_result <= std_logic_vector(signed(data_A) + signed(data_B));
+						--CASE add,addi
+						when alu_add|alu_addi =>
+							intermediate_result <= std_logic_vector(signed(data_A) + signed(data_B));
 
-					--CASE sub
-					when alu_sub =>
-						intermediate_result <= std_logic_vector(signed(data_A) - signed(data_B));
+						--CASE sub
+						when alu_sub =>
+							intermediate_result <= std_logic_vector(signed(data_A) - signed(data_B));
 
-					--CASE slt,slti
-					when alu_slt|alu_slti =>
-						if (signed(data_A) < signed(data_B)) then
-							intermediate_result <= "00000000000000000000000000000001";
-						else
+						--CASE slt,slti
+						when alu_slt|alu_slti =>
+							if (signed(data_A) < signed(data_B)) then
+								intermediate_result <= "00000000000000000000000000000001";
+							else
+								intermediate_result <= "00000000000000000000000000000000";
+							end if;
+
+						--CASE and,andi
+						when alu_and|alu_andi =>
+							intermediate_result <= data_A and data_B;
+
+						--CASE or,ori
+						when alu_or|alu_ori =>
+							intermediate_result <= data_A or data_B;
+
+						--CASE nor
+						when alu_nor =>
+							intermediate_result <= data_A nor data_B;
+
+						--CASE xor, xori
+						when alu_xor|alu_xori =>
+							intermediate_result <= data_A xor data_B;
+
+						--CASE lui
+						--Shifts the immediate value to left by 16 bits and lower bits become all 0's
+						--First do sll and then assign 0's to bits 0 to 15
+						--Upper immediate will be provided in data_A
+						when alu_lui =>
+							intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sll 16);
+
+						--CASE sll
+						-- Shift amounts specified in data_B (no shamt signal incoming to ALU)
+						when alu_sll =>
+							intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sll to_integer(signed(shamt)));
+
+						--CASE slr
+						when alu_srl =>
+							intermediate_result <= to_stdlogicvector(to_bitvector(data_B) srl to_integer(signed(shamt)));
+
+						--CASE sra
+						when alu_sra =>
+							intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sra to_integer(signed(shamt)));
+
+						--Anything else
+						when others =>
 							intermediate_result <= "00000000000000000000000000000000";
-						end if;
 
-					--CASE and,andi
-					when alu_and|alu_andi =>
-						intermediate_result <= data_A and data_B;
-
-					--CASE or,ori
-					when alu_or|alu_ori =>
-						intermediate_result <= data_A or data_B;
-
-					--CASE nor
-					when alu_nor =>
-						intermediate_result <= data_A nor data_B;
-
-					--CASE xor, xori
-					when alu_xor|alu_xori =>
-						intermediate_result <= data_A xor data_B;
-
-					--CASE lui
-					--Shifts the immediate value to left by 16 bits and lower bits become all 0's
-					--First do sll and then assign 0's to bits 0 to 15
-					--Upper immediate will be provided in data_A
-					when alu_lui =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sll 16);
-
-					--CASE sll
-					-- Shift amounts specified in data_B (no shamt signal incoming to ALU)
-					when alu_sll =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sll to_integer(signed(shamt)));
-
-					--CASE slr
-					when alu_srl =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) srl to_integer(signed(shamt)));
-
-					--CASE sra
-					when alu_sra =>
-						intermediate_result <= to_stdlogicvector(to_bitvector(data_B) sra to_integer(signed(shamt)));
-
-					--Anything else
-					when others =>
-						intermediate_result <= "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-
-				end case;
+					end case;
+			else 
+				intermediate_result <= "00000000000000000000000000000000";
+			end if;
 
 		end process;
 
