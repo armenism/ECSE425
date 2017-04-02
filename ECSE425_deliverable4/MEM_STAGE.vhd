@@ -13,7 +13,7 @@ entity MEM_STAGE is
 
   generic(
     ram_size : INTEGER := 8192;
-    mem_delay : time := 10 ns;
+    mem_delay : time := 1 ns;
     clock_period : time := 1 ns
   );
 
@@ -99,6 +99,8 @@ begin
 		if (MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1') then
 			do_mem_write <= '1';
 			data_to_write_to_memory <= data_to_write_from_EX;
+		else 
+			do_mem_write <= '0';
 		end if;
 		
       --Once memory returns wait request, we have its output if memory read operation was performed.

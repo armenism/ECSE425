@@ -3,8 +3,6 @@
 
 -- HAS TO BE MODIFIED BECAUSE WE WILL BE NEEDIGN TO SAVE 32 BIT DATA FROM ALU or data_B (Rs)
 
---TODO: make byte compatible to write 32 bits in 4 consecutive byte entries
-
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
@@ -12,7 +10,7 @@ USE ieee.numeric_std.all;
 ENTITY DataMEM IS
 	GENERIC(
 		ram_size : INTEGER := 8192;
-		mem_delay : time := 10 ns;
+		mem_delay : time := 1 ns;
 		clock_period : time := 1 ns
 	);
 	PORT (
@@ -32,15 +30,17 @@ ARCHITECTURE rtl OF DataMEM IS
 	SIGNAL read_address_reg:  STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
+	--Signal short_address: Std_LOGIC_VECTOR (12 downto 0);
 BEGIN
-
+	
+	--short_address <= address(12 downto 0);
 	--This is the main section of the SRAM model
 	mem_process: PROCESS (clock)
 	BEGIN
 		--This is a cheap trick to initialize the SRAM in simulation
 		IF(now < 1 ps)THEN
 			For i in 0 to ram_size-1 LOOP
-				ram_block(i) <= std_logic_vector(to_unsigned(i,32));
+				ram_block(i) <= std_logic_vector(to_unsigned(0,32));
 			END LOOP;
 		end if;
 
