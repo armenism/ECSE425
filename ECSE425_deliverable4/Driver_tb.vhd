@@ -47,7 +47,7 @@ COMPONENT DataMEM IS
 END COMPONENT;
 
 
--- MAIN CPU DRIVER COMPONENT
+ --MAIN CPU DRIVER COMPONENT
 COMPONENT Driver IS
 	PORT (
 	 clk:	IN  STD_LOGIC;
@@ -78,11 +78,11 @@ END COMPONENT;
 	 --Instruction memory signals
     SIGNAL address: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL memwrite: STD_LOGIC := '0';
-	  SIGNAL memread: STD_LOGIC := '0';
+	 SIGNAL memread: STD_LOGIC := '0';
     SIGNAL inst_readdata: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL writedata: STD_LOGIC_VECTOR (31 DOWNTO 0);
     SIGNAL done_writing: STD_LOGIC := '0';
-	  SIGNAL mem_ready_to_use: STD_LOGIC := '0';
+	 SIGNAL mem_ready_to_use: STD_LOGIC := '0';
 	
 	 --Main memory signals
 	 SIGNAL address_for_memory: STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -105,8 +105,8 @@ Main_Driver:
 	Driver PORT MAP(
 			 clk => clock,
 			 rst => reset,
-	       instr_mem_address => transitive_address,
-          instr_mem_data => inst_readdata, 
+	       		 instr_mem_address => transitive_address,
+          		 instr_mem_data => inst_readdata, 
 			 data_read_from_memory => data_read_from_memory,
 			 waitrequest_from_memory => waitrequest_from_memory,
 			 data_to_write_to_memory => data_to_write_to_memory,
@@ -114,7 +114,7 @@ Main_Driver:
 			 do_mem_write => do_mem_write,
 			 do_mem_read  => do_mem_read
 	);
---
+
 ----------------------------------------------------INSTR MEM PORT MAP
 Instruction_Memory:
     InstructionMEM GENERIC MAP(
@@ -174,10 +174,11 @@ test_process : process
 		
 		-- Below logic fills up he instruction memory, happens once. 
 		IF (mem_ready_to_use = '0') THEN
+		  done_writing <= '0';
 		  memwrite<='1';
 		  WAIT FOR clk_period;
 			--open file: path specified in the second argument
-			file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\cdibet\My Documents\Ecse 425\Deliverable 4\output_files\program.txt", READ_MODE);
+			file_open (ex_file, "P:\ECSE 425\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
 			--Read through 1024 lines of text file and save to memory
 			while not endfile(ex_file) and i < 1024 loop
 				address<= std_logic_vector(to_unsigned(i,32));
@@ -192,12 +193,13 @@ test_process : process
 			file_close (ex_file);
 			memwrite <= '0';
 			done_writing <= '1';
+			address <=   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+			writedata <= "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 			--address_for_memory <= (OTHERS => '0');
-			--tell InstructionMEM writing is done
 		END IF;
-		
+	
 		--Once the main memory is done filling up, we can launch CPU simulation
-		
+		--Condition to be able to use the memory only and only if its filled up
 		IF (mem_ready_to_use = '1') THEN
 		
 			reset <= '1';
@@ -211,7 +213,7 @@ test_process : process
 				WAIT FOR clk_period;
 				j := j + 1;
 			end loop;
-			--wait for clk_period*100000;		
+
 		END IF;
 
 	END PROCESS;

@@ -79,7 +79,9 @@ architecture arch of EX_STAGE is
   signal shamt_for_alu : std_logic_vector (31 DOWNTO 0);
   signal ALU_data_A : std_logic_vector (31 DOWNTO 0);
   signal ALU_data_B : std_logic_vector (31 DOWNTO 0);
-  signal ALU_res_to_mem : std_logic_vector (31 DOWNTO 0);
+  signal EX_result_out_to_mem : std_logic_vector (31 DOWNTO 0);
+  signal ALU_result : std_logic_vector (31 DOWNTO 0);
+  
 
   --Intermediate multiplication signals, high bits and low bits signals for mflo and mfhi operations (since decoupled from ALU now)
   signal mult_div_low_bits: std_logic_vector (31 DOWNTO 0);
@@ -102,9 +104,9 @@ architecture arch of EX_STAGE is
       EX_data_from_RT;
 
     --Multiplexor for output of the stage from ALU. If control signals for EX stage are on for mflo or mfhi, route the high or low bits to output, else, regular ALU output is router to stage output
-    ALU_res_to_mem <= mult_div_hi_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
+    EX_result_out_to_mem <= mult_div_hi_bits	when EX_STAGE_CONTROL_SIGNALS.mfhi = '1' else
       mult_div_low_bits	when EX_STAGE_CONTROL_SIGNALS.mflo = '1' else
-      ALU_res_to_mem;
+      ALU_result;
 
     -------------------------------------------------------------PORTMAPS
     mult_div : standalone_multi_div_unit
@@ -121,7 +123,7 @@ architecture arch of EX_STAGE is
 		data_A => ALU_data_A,
 		data_B => ALU_data_B,
 		shamt => shamt_for_alu,
-      RESULT => ALU_res_to_mem
+      RESULT => ALU_result
 		);
 
     -------------------------------------------------------------PROCESSES
@@ -170,7 +172,7 @@ architecture arch of EX_STAGE is
           WB_STAGE_CONTROL_SIGNALS_out <= WB_STAGE_CONTROL_SIGNALS;
 
           --Assign all the computed signals
-				EX_ALU_result_out <= ALU_res_to_mem;
+				EX_ALU_result_out <= EX_result_out_to_mem;
   				EX_write_data_out <= EX_data_from_RT; --> in case of LW and SW operations, data from this reg is stored in the MEM
   				EX_destination_reg_RD_out <= EX_destination_reg_RD;
 
@@ -181,7 +183,7 @@ architecture arch of EX_STAGE is
   	end process;
    
 	bp_EX_reg_write	<= WB_STAGE_CONTROL_SIGNALS.write_to_register;
-	bp_EX_reg_data 	<= ALU_res_to_mem;
+	bp_EX_reg_data 	<= EX_result_out_to_mem;
 	bp_EX_dest_reg 	<= EX_destination_reg_RD;
 
 end arch;
