@@ -27,9 +27,9 @@ BEGIN
 	
 
 	-- 32-register file
-	Registers : PROCESS (clock)
+	Registers : PROCESS (reg_addr_1, reg_addr_2)--(clock)
 	BEGIN
-		IF rising_edge(clock) THEN
+		IF reg_addr_1'event OR reg_addr_2'event THEN
 			--Hardwire register 0 to zero
 			sram(0) <= x"00000000";
 			
