@@ -33,25 +33,6 @@ ARCHITECTURE behavioural OF Instruction_Fetch IS
 
 BEGIN
 																
-	Branch_Logic : PROCESS (Clock, Reset)
-	BEGIN
-		IF Reset = '1' THEN
-			Temp_Branch_Taken <= '0';
-		ELSIF rising_edge(Clock) AND Stall = '0' THEN
-
-			IF (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
-			AND IF_Control.branch = '1')
-			OR IF_Control.jump = '1')
-			AND Temp_Branch_Taken = '0' THEN 
-					Temp_Branch_Taken <= '1';
-			ELSE Temp_Branch_Taken <= '0';
-
-			END IF;
-		END IF;
-	END PROCESS;
-
-	Branch_Taken <= Temp_Branch_Taken;
-
 	--process to move data from this stage to next stage
 	Pipe : PROCESS (Input_From_Instruction_Memory, Reset,ID_Branch_Address)
 
@@ -59,27 +40,30 @@ BEGIN
 		IF Reset = '1' THEN
 			PC <= x"00000000";
 			Instruction <= x"00000000";
+			Temp_Branch_Taken <= '0';
 		
 		ELSIF Input_From_Instruction_Memory'event THEN
 			IF Input_From_Instruction_Memory /= "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" THEN
 				Instruction <= Input_From_Instruction_Memory;
-				--PC <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
 				
 				-- IF branch or jump signals are valid, then actually jump. The PC
 				--becomes the branch address calculated by ID
 				IF (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
 															AND IF_Control.branch = '1')
 															OR IF_Control.jump = '1')
-															AND Temp_Branch_Taken = '0' THEN								
+															AND Temp_Branch_Taken = '0' THEN
+								Temp_Branch_Taken <= '1';								
 								PC <= ID_Branch_Address;
 				ELSE
 					PC <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
+					Temp_Branch_Taken <= '0';
 				END IF;
 			END IF;
 		END IF;
 		
 	END PROCESS;
-
+	
+	Branch_Taken <= Temp_Branch_Taken;
 	IF_PC <= PC;
 	--BUS: check for stalls, reads and writes, set the bus to high-impedance if issue
 	Stall <= '0'; --IF_Stall OR (NOT Ready); 
