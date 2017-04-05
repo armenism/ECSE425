@@ -139,7 +139,7 @@ BEGIN
 					rt;
 
 --Logic for branches and jumps
-	br_addr <= STD_LOGIC_VECTOR ((SIGNED(imm_extend) SLL 2) + SIGNED(PC_in)); --PC here already +4
+	br_addr <= STD_LOGIC_VECTOR ((UNSIGNED(imm_extend))); -- + SIGNED(PC_in)); --PC here already +4 we DONT add. Simply br/jump to address specified in immediate
 
 	ID_br_zero <= '1' WHEN rs_value = rt_value ELSE
 					  '0';

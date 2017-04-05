@@ -40,11 +40,11 @@ package signal_types is
 																	 r_multi_div,
 																	 r_hilo,
 																	 r_jump_register,
-								  							 	 i_arithmetic,
+								  							 	    i_arithmetic,
 																	 i_memory,
 																	 i_lui,
 																	 i_br,
-								  							 	 j_jump,
+								  							 	    j_jump,
 																	 j_jal);
 
   --SIGNAL TYPES FOR INSTRUCTION FETCH STAGE CONTROL SIGNALS

@@ -178,7 +178,7 @@ test_process : process
 		  memwrite<='1';
 		  WAIT FOR clk_period;
 			--open file: path specified in the second argument
-			file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
+			file_open (ex_file, "P:\ECSE 425\ECSE425\ECSE425\ECSE425_deliverable4\program.txt", READ_MODE);
 			--Read through 1024 lines of text file and save to memory
 			while not endfile(ex_file) and i < 1024 loop
 				address<= std_logic_vector(to_unsigned(i,32));

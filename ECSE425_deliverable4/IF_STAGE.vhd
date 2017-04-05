@@ -52,14 +52,12 @@ BEGIN
 
 	--Logic for new branch address.. gives PC+4 if no new branch
 	PC_Plus <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001"); --was 4
-   Next_PC <= PC_Plus;
---  ID_Branch_Address WHEN (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
---																AND IF_Control.branch = '1')
---																OR IF_Control.jump = '1')
---																AND Temp_Branch_Taken = '0' ELSE 
+	-- Lower was simply PC_Plus;
+   Next_PC <= ID_Branch_Address WHEN (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
+															AND IF_Control.branch = '1')
+															OR IF_Control.jump = '1')
+															AND Temp_Branch_Taken = '0' ELSE PC_Plus;
 																
-
-
 	Branch_Logic : PROCESS (Clock, Reset)
 	BEGIN
 		IF Reset = '1' THEN
@@ -93,14 +91,14 @@ BEGIN
 			--ELSIF Stall = '0' THEN
 			ELSE
 				IF_Instruction <= Instruction;
-				IF_PC <= PC;
+				IF_PC <= Next_PC; -- was PC
 			END IF;
 		END IF;
 	END PROCESS;
 
 
 	--BUS: check for stalls, reads and writes, set the bus to high-impedance if issue
-	Stall <= IF_Stall OR (NOT Ready);
+	Stall <= '0'; --IF_Stall OR (NOT Ready); 
 	Dont_Use <= IF_Stall OR Init;
 
 	--Input_From_Instruction_Memory <= (OTHERS => 'Z');
