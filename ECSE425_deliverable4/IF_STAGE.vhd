@@ -28,35 +28,10 @@ ARCHITECTURE behavioural OF Instruction_Fetch IS
 	SIGNAL Stall : STD_LOGIC;
 	SIGNAL Dont_Use : STD_LOGIC;
 	SIGNAL Temp_Branch_Taken : STD_LOGIC;
-	SIGNAL Next_PC	: STD_LOGIC_VECTOR (31 DOWNTO 0); --
 	SIGNAL PC : STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL PC_Plus : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL Instruction : STD_LOGIC_VECTOR (31 DOWNTO 0);
 
 BEGIN
-
-	--On reset go to 0x0, on initiate go to 0x0 otherwise go to next PC
-	PROCESS (Clock, Reset)
-	BEGIN
-		IF Reset = '1' THEN
-			PC <= x"00000000";
-		ELSIF rising_edge(Clock) THEN
-			IF Init = '1' THEN
-				PC <= x"00000000";
-			--ELSIF Stall = '0' THEN
-			ELSE
-				PC <= Next_PC;
-			END IF;
-		END IF;
-	END PROCESS;
-
-	--Logic for new branch address.. gives PC+4 if no new branch
-	PC_Plus <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001"); --was 4
-	-- Lower was simply PC_Plus;
-   Next_PC <= ID_Branch_Address WHEN (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
-															AND IF_Control.branch = '1')
-															OR IF_Control.jump = '1')
-															AND Temp_Branch_Taken = '0' ELSE PC_Plus;
 																
 	Branch_Logic : PROCESS (Clock, Reset)
 	BEGIN
@@ -78,31 +53,40 @@ BEGIN
 	Branch_Taken <= Temp_Branch_Taken;
 
 	--process to move data from this stage to next stage
-	Pipe : PROCESS (Clock, Reset)
+	Pipe : PROCESS (Input_From_Instruction_Memory, Reset,ID_Branch_Address)
 
 	BEGIN
 		IF Reset = '1' THEN
-			IF_PC <= x"00000000";
-			IF_Instruction <= x"00000000";
-		ELSIF rising_edge(Clock) THEN
-			IF Init = '1' THEN
-				IF_PC <= x"00000000";
-				IF_Instruction <= x"00000000";
-			--ELSIF Stall = '0' THEN
-			ELSE
-				IF_Instruction <= Instruction;
-				IF_PC <= Next_PC; -- was PC
+			PC <= x"00000000";
+			Instruction <= x"00000000";
+		
+		ELSIF Input_From_Instruction_Memory'event THEN
+			IF Input_From_Instruction_Memory /= "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" THEN
+				Instruction <= Input_From_Instruction_Memory;
+				--PC <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
+				
+				-- IF branch or jump signals are valid, then actually jump. The PC
+				--becomes the branch address calculated by ID
+				IF (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
+															AND IF_Control.branch = '1')
+															OR IF_Control.jump = '1')
+															AND Temp_Branch_Taken = '0' THEN								
+								PC <= ID_Branch_Address;
+				ELSE
+					PC <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
+				END IF;
 			END IF;
 		END IF;
+		
 	END PROCESS;
 
-
+	IF_PC <= PC;
 	--BUS: check for stalls, reads and writes, set the bus to high-impedance if issue
 	Stall <= '0'; --IF_Stall OR (NOT Ready); 
 	Dont_Use <= IF_Stall OR Init;
 
 	--Input_From_Instruction_Memory <= (OTHERS => 'Z');
 
-	Instruction <= Input_From_Instruction_Memory;
+	IF_Instruction <= Instruction;
 
 END behavioural;
