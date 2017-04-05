@@ -48,6 +48,7 @@ BEGIN
 				
 				-- IF branch or jump signals are valid, then actually jump. The PC
 				--becomes the branch address calculated by ID
+				--WORKS! Needs flushing/stalling
 				IF (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
 															AND IF_Control.branch = '1')
 															OR IF_Control.jump = '1')
