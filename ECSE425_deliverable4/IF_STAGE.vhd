@@ -55,6 +55,10 @@ BEGIN
 															AND Temp_Branch_Taken = '0' THEN
 								Temp_Branch_Taken <= '1';								
 								PC <= ID_Branch_Address;
+								--Necessary for stall purposes.
+								--The next instruction will ne overwritten by this bubble
+								--and only after the branched instruction will be taken
+								Instruction <= "00100000000000000000000000000000";
 				ELSE
 					PC <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
 					Temp_Branch_Taken <= '0';
