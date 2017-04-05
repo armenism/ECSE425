@@ -390,13 +390,13 @@ BEGIN
 
 	Handle_reset: Process(clk, rst)
 		begin
-			if rst = '1' then
+			if rising_edge(rst) then
 				instr_mem_address <=  "00000000000000000000000000000000";
 				data_to_write_to_memory <=  "00000000000000000000000000000000";
 				address_for_memory <=  "00000000000000000000000000000000";
 				do_mem_write	<= '0';
 				do_mem_read	<= '0';
-			else
+			elsif rst = '0' then
 				instr_mem_address <= IF_PC;
 				--instr_mem_address <= x"00000000";
 				data_to_write_to_memory <= data_to_write_to_memory_sig;

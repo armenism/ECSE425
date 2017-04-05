@@ -28,31 +28,11 @@ ARCHITECTURE behavioural OF Instruction_Fetch IS
 	SIGNAL Stall : STD_LOGIC;
 	SIGNAL Dont_Use : STD_LOGIC;
 	SIGNAL Temp_Branch_Taken : STD_LOGIC;
-	SIGNAL Next_PC	: STD_LOGIC_VECTOR (31 DOWNTO 0); --
 	SIGNAL PC : STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL PC_Plus : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL Instruction : STD_LOGIC_VECTOR (31 DOWNTO 0);
 
 BEGIN
 
-	--On reset go to 0x0, on initiate go to 0x0 otherwise go to next PC
-	PROCESS (Clock, Reset)
-	BEGIN
-		IF Reset = '1' THEN
-			PC <= x"00000000";
-		ELSIF rising_edge(Clock) THEN
-			IF Init = '1' THEN
-				PC <= x"00000000";
-			--ELSIF Stall = '0' THEN
-			ELSE
-				PC <= Next_PC;
-			END IF;
-		END IF;
-	END PROCESS;
-
-	--Logic for new branch address.. gives PC+4 if no new branch
-	PC_Plus <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001"); --was 4
-   Next_PC <= PC_Plus;
 --  ID_Branch_Address WHEN (((ID_Branch_Zero = '1' XOR IF_Control.bne = '1')
 --																AND IF_Control.branch = '1')
 --																OR IF_Control.jump = '1')
@@ -80,31 +60,29 @@ BEGIN
 	Branch_Taken <= Temp_Branch_Taken;
 
 	--process to move data from this stage to next stage
-	Pipe : PROCESS (Clock, Reset)
+	Pipe : PROCESS (Input_From_Instruction_Memory, Reset)
 
 	BEGIN
 		IF Reset = '1' THEN
-			IF_PC <= x"00000000";
-			IF_Instruction <= x"00000000";
-		ELSIF rising_edge(Clock) THEN
-			IF Init = '1' THEN
-				IF_PC <= x"00000000";
-				IF_Instruction <= x"00000000";
-			--ELSIF Stall = '0' THEN
-			ELSE
-				IF_Instruction <= Instruction;
-				IF_PC <= PC;
+			PC <= x"00000000";
+			Instruction <= x"00000000";
+		
+		ELSIF Input_From_Instruction_Memory'event THEN
+			IF Input_From_Instruction_Memory /= "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU" THEN
+				Instruction <= Input_From_Instruction_Memory;
+				PC <= STD_LOGIC_VECTOR (UNSIGNED(PC) + x"00000001");
 			END IF;
 		END IF;
+		
 	END PROCESS;
 
-
+	IF_PC <= PC;
 	--BUS: check for stalls, reads and writes, set the bus to high-impedance if issue
 	Stall <= IF_Stall OR (NOT Ready);
 	Dont_Use <= IF_Stall OR Init;
 
 	--Input_From_Instruction_Memory <= (OTHERS => 'Z');
 
-	Instruction <= Input_From_Instruction_Memory;
+	IF_Instruction <= Instruction;
 
 END behavioural;
