@@ -42,7 +42,7 @@ BEGIN
 				ram_block(TO_INTEGER(signed(address))) <= writedata;
 			END IF;
 			IF (memread = '1' AND done_writing = '1') THEN
-				data_to_be_read <= ram_block(TO_INTEGER(signed(address)));
+				data_to_be_read <= ram_block(TO_INTEGER(unsigned(address)));
 			END IF;
 		END IF;
 	END PROCESS;

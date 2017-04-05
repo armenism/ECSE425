@@ -53,7 +53,6 @@ BEGIN
 		END IF;
 	END PROCESS;
 
-	readdata <= ram_block(to_integer(signed(read_address_reg)));
 
 
 	--The waitrequest signal is used to vary response time in simulation
@@ -69,6 +68,8 @@ BEGIN
 	waitreq_r_proc: PROCESS (memread)
 	BEGIN
 		IF(memread'event AND memread = '1')THEN
+		
+			readdata <= ram_block(to_integer(signed(read_address_reg)));
 			read_waitreq_reg <= '0' after mem_delay, '1' after mem_delay + clock_period;
 		END IF;
 	END PROCESS;
