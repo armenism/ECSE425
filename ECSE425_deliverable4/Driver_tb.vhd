@@ -52,6 +52,7 @@ COMPONENT Driver IS
 	PORT (
 	 clk:	IN  STD_LOGIC;
 	 rst: IN  STD_LOGIC;
+	 done_program_in : in STD_LOGIC;
 	 
 	 --INSTRUCTION MEM SINALS
 	 instr_mem_address: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
@@ -96,6 +97,10 @@ END COMPONENT;
 	 	 
 	 --Reset
 	 SIGNAL reset : STD_LOGIC := '0';
+	 
+	 signal done_program : STD_LOGIC;
+	 
+	 signal p : unsigned (31 downto 0);
 
 --------------------------------------------------BEGIN ARCH
 BEGIN
@@ -105,8 +110,9 @@ Main_Driver:
 	Driver PORT MAP(
 			 clk => clock,
 			 rst => reset,
-	       		 instr_mem_address => transitive_address,
-          		 instr_mem_data => inst_readdata, 
+			 done_program_in=>done_program,
+			 instr_mem_address => transitive_address,
+			 instr_mem_data => inst_readdata, 
 			 data_read_from_memory => data_read_from_memory,
 			 waitrequest_from_memory => waitrequest_from_memory,
 			 data_to_write_to_memory => data_to_write_to_memory,
@@ -146,7 +152,6 @@ Data_Memory:
 		waitrequest => waitrequest_from_memory
 	);	
 	
-	
 
 --------------------------------------------------CLOCK PROCESS		
 clock_process : process
@@ -162,7 +167,7 @@ clock_process : process
 --------------------------------------------------MAIN PROCESS					
 test_process : process
 
-	FILE ex_file: text;
+	FILE ex_file: TEXT open READ_MODE is "\\campus.mcgill.ca\emf\cpe\cdibet\My Documents\ECSE425_deliverable4\bitwiseLoad.txt";
    VARIABLE current_line: line;
 	variable i : integer := 0;
 	variable j : integer := 0;
@@ -178,10 +183,10 @@ test_process : process
 		  memwrite<='1';
 		  WAIT FOR clk_period;
 			--open file: path specified in the second argument
-			file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program(THE RE UP).txt", READ_MODE);
+			--file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\cdibet\My Documents\ECSE425_deliverable4\bitwiseLoad.txt", READ_MODE);
 			--Read through 1024 lines of text file and save to memory
 			while not endfile(ex_file) and i < 1024 loop
-				address<= std_logic_vector(to_unsigned(i,32));
+				address <= std_logic_vector(to_unsigned(i,32));
 				readline (ex_file, current_line);
 				read (current_line, data_line);
 				writedata <= data_line;
@@ -212,6 +217,13 @@ test_process : process
 				address <= transitive_address;
 				WAIT FOR clk_period;
 				j := j + 1;
+				p <= to_unsigned(j, 32);
+				done_program <= '1';
+				if ( j > 9950) then
+					done_program <= '1';
+				else 
+					done_program <= '0';
+				end if;
 			end loop;
 
 		END IF;
