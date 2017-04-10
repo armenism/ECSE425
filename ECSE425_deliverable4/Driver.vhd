@@ -15,6 +15,7 @@ ENTITY Driver IS
 	PORT (
 		clk				:	IN  STD_LOGIC;
 		rst				: 	IN  STD_LOGIC;
+		done_program_in : in STD_LOGIC;
 
 		instr_mem_address	:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
       		instr_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0)    --what we get from instruction memory after requesting the address
@@ -26,7 +27,6 @@ ENTITY Driver IS
 		--address_for_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
 		--do_mem_write	: out STD_LOGIC;
 		--do_mem_read	: out STD_LOGIC
-	 
 	);
 
 END Driver;
@@ -115,6 +115,8 @@ ARCHITECTURE arch OF Driver IS
 			ControlEX_in	: IN EX_CTRL_SIGS;
 			ControlMEM_in 	: IN MEM_CTRL_SIGS;
 			ControlWB_in 	: IN WB_CTRL_SIGS;
+			
+			done_program : in STD_LOGIC;
 
 			--Branch outputs
 			ID_stall_IF	: OUT STD_LOGIC;
@@ -130,6 +132,7 @@ ARCHITECTURE arch OF Driver IS
 			ID_shamt: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
 			ID_dest_reg : OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
 			PC_out 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
+			
 		);
 	END COMPONENT;
 
@@ -313,6 +316,8 @@ BEGIN
 			ControlEX_in => EX_control_signals,
 			ControlMEM_in => MEM_control_signals,
 			ControlWB_in => WB_control_signals,
+			
+			done_program => done_program_in,
 
 			MEM_busacccess_in => EX_ctrl_MEM.memory_bus,
 

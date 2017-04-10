@@ -38,6 +38,8 @@ ENTITY instruction_decode IS
 		ControlEX_in	: IN EX_CTRL_SIGS;
 		ControlMEM_in 	: IN MEM_CTRL_SIGS;
 		ControlWB_in 	: IN WB_CTRL_SIGS;
+		
+		done_program 	: IN STD_LOGIC;
 
 		--Branch outputs
 		ID_stall_IF	: OUT STD_LOGIC;
@@ -67,6 +69,7 @@ ARCHITECTURE arch OF instruction_decode IS
 			write_reg		: 	IN  STD_LOGIC_VECTOR (4 DOWNTO 0);
 			write_data		:	IN  STD_LOGIC_VECTOR (31 DOWNTO 0);
 			write_enable	:  IN  STD_LOGIC;
+			done_program	: 	IN	 STD_LOGIC;
 			read_data_1		:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 			read_data_2		:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
 		);
@@ -112,6 +115,7 @@ ARCHITECTURE arch OF instruction_decode IS
 	-- Hazard detection
 	signal insert_nop : STD_LOGIC; --No operation
 	signal hazard_stall 	: STD_LOGIC;
+	
 
 BEGIN
 
@@ -125,6 +129,7 @@ BEGIN
 			write_reg => WB_addr,
 			write_data => WB_data,
 			write_enable => WB_ctrl.write_to_register,
+			done_program => done_program,
 			read_data_1 => rs_reg_1,
 			read_data_2 => rt_reg_2
 		);
