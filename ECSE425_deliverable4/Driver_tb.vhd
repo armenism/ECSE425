@@ -28,23 +28,23 @@ COMPONENT InstructionMEM IS
 	);
 END COMPONENT;
 --
----- DATA MEM COMPONENT
-COMPONENT DataMEM IS
-	GENERIC(
-		ram_size : INTEGER := 8192;
-		mem_delay : time := 10 ns;
-		clock_period : time := 1 ns
-	);
-	PORT (
-		clock: IN STD_LOGIC;
-		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		address: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		memwrite: IN STD_LOGIC;
-		memread: IN STD_LOGIC;
-		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-		waitrequest: OUT STD_LOGIC
-	);
-END COMPONENT;
+------ DATA MEM COMPONENT
+--COMPONENT DataMEM IS
+--	GENERIC(
+--		ram_size : INTEGER := 8192;
+--		mem_delay : time := 10 ns;
+--		clock_period : time := 1 ns
+--	);
+--	PORT (
+--		clock: IN STD_LOGIC;
+--		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+--		address: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+--		memwrite: IN STD_LOGIC;
+--		memread: IN STD_LOGIC;
+--		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+--		waitrequest: OUT STD_LOGIC
+--	);
+--END COMPONENT;
 
 
  --MAIN CPU DRIVER COMPONENT
@@ -55,16 +55,16 @@ COMPONENT Driver IS
 	 
 	 --INSTRUCTION MEM SINALS
 	 instr_mem_address: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
-    instr_mem_data: in STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
+    	 instr_mem_data: in STD_LOGIC_VECTOR (31 DOWNTO 0)    --what we get from instruction memory after requesting the address
 
 	 
 	 --DATA MEM  SIGNALS stage signals necessary to communicate with the main memory residing in the test bench 
-	 data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 waitrequest_from_memory: in STD_LOGIC; 
-	 data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 address_for_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 do_mem_write	: out STD_LOGIC;
-	 do_mem_read	: out STD_LOGIC
+--	 data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
+--	 waitrequest_from_memory: in STD_LOGIC; 
+--	 data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
+--	 address_for_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
+--	 do_mem_write	: out STD_LOGIC;
+--	 do_mem_read	: out STD_LOGIC
 	);
 	
 END COMPONENT;
@@ -85,12 +85,12 @@ END COMPONENT;
 	 SIGNAL mem_ready_to_use: STD_LOGIC := '0';
 	
 	 --Main memory signals
-	 SIGNAL address_for_memory: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 SIGNAL data_to_write_to_memory:  STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 SIGNAL data_read_from_memory: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 SIGNAL do_mem_write	:  STD_LOGIC;
-	 SIGNAL do_mem_read	:  STD_LOGIC;
-	 SIGNAL waitrequest_from_memory:  STD_LOGIC;
+	 --SIGNAL address_for_memory: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 --SIGNAL data_to_write_to_memory:  STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 --SIGNAL data_read_from_memory: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	 --SIGNAL do_mem_write	:  STD_LOGIC;
+	 --SIGNAL do_mem_read	:  STD_LOGIC;
+	 --SIGNAL waitrequest_from_memory:  STD_LOGIC;
 	 
 	 SIGNAL transitive_address:  STD_LOGIC_VECTOR (31 DOWNTO 0);
 	 	 
@@ -105,14 +105,14 @@ Main_Driver:
 	Driver PORT MAP(
 			 clk => clock,
 			 rst => reset,
-	       		 instr_mem_address => transitive_address,
-          		 instr_mem_data => inst_readdata, 
-			 data_read_from_memory => data_read_from_memory,
-			 waitrequest_from_memory => waitrequest_from_memory,
-			 data_to_write_to_memory => data_to_write_to_memory,
-			 address_for_memory => address_for_memory,
-			 do_mem_write => do_mem_write,
-			 do_mem_read  => do_mem_read
+	       instr_mem_address => transitive_address,
+          instr_mem_data => inst_readdata 
+			 --data_read_from_memory => data_read_from_memory,
+			 --waitrequest_from_memory => waitrequest_from_memory,
+			 --data_to_write_to_memory => data_to_write_to_memory,
+			 --address_for_memory => address_for_memory,
+			 --do_mem_write => do_mem_write,
+			 --do_mem_read  => do_mem_read
 	);
 
 ----------------------------------------------------INSTR MEM PORT MAP
@@ -132,19 +132,19 @@ Instruction_Memory:
 							inst_readdata
 					 );
 ----------------------------------------------------DATA MEM PORT MAP
-Data_Memory:
-	DataMEM 	GENERIC MAP(
-		ram_size => 8192
-	)
-	PORT MAP (
-		clock => clock,
-		writedata => data_to_write_to_memory,
-		address => address_for_memory,
-		memwrite => do_mem_write,
-		memread =>do_mem_read,
-		readdata => data_read_from_memory,
-		waitrequest => waitrequest_from_memory
-	);	
+--Data_Memory:
+--	DataMEM 	GENERIC MAP(
+--		ram_size => 8192
+--	)
+--	PORT MAP (
+--		clock => clock,
+--		writedata => data_to_write_to_memory,
+--		address => address_for_memory,
+--		memwrite => do_mem_write,
+--		memread =>do_mem_read,
+--		readdata => data_read_from_memory,
+--		waitrequest => waitrequest_from_memory
+--	);	
 	
 	
 
@@ -178,7 +178,7 @@ test_process : process
 		  memwrite<='1';
 		  WAIT FOR clk_period;
 			--open file: path specified in the second argument
-			file_open (ex_file, "\\campus.mcgill.ca\emf\cpe\astepa2\Desktop\ECSE425\ECSE425\ECSE425_deliverable4\program(THE RE UP).txt", READ_MODE);
+			file_open (ex_file, "P:\ECSE 425\ECSE425\ECSE425\ECSE425_deliverable4\bitwiseLoad.txt", READ_MODE);
 			--Read through 1024 lines of text file and save to memory
 			while not endfile(ex_file) and i < 1024 loop
 				address<= std_logic_vector(to_unsigned(i,32));

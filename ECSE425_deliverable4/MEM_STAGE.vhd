@@ -46,16 +46,16 @@ entity MEM_STAGE is
     --Bypass outputs
 	 bp_MEM_reg_write	: OUT STD_LOGIC;
 	 bp_MEM_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-	 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
+	 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
 	
 	 --Interface sinals to and from driver that comminucates with the main memory 
-	 data_read_from_memory : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-    waitrequest_from_memory: IN STD_LOGIC;
+	 --data_read_from_memory : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+    --waitrequest_from_memory: IN STD_LOGIC;
 	 
-	 data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-    address_for_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-    do_mem_write	: OUT STD_LOGIC;
-    do_mem_read	: OUT STD_LOGIC
+	 --data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+    --address_for_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+    --do_mem_write	: OUT STD_LOGIC;
+    --do_mem_read	: OUT STD_LOGIC
 	 
   );
 
@@ -65,22 +65,60 @@ end MEM_STAGE;
 architecture arch of MEM_STAGE is
 
   -------------------------------------------------------------COMPONENTS
-
+	---- DATA MEM COMPONENT
+	COMPONENT DataMEM IS
+		GENERIC(
+			ram_size : INTEGER := 8192;
+			mem_delay : time := 10 ns;
+			clock_period : time := 1 ns
+		);
+		PORT (
+			clock: IN STD_LOGIC;
+			writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+			address: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+			memwrite: IN STD_LOGIC;
+			memread: IN STD_LOGIC;
+			readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+			waitrequest: OUT STD_LOGIC
+		);
+	END COMPONENT;
   -------------------------------------------------------------SIGNALS
   --Will map to memory data or the ALU output bypassing the memory
 	signal intermediate_data_out : std_logic_vector (31 downto 0);
+		 --Main memory signals
+	SIGNAL address_for_memory: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL data_to_write_to_memory:  STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL data_read_from_memory: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL do_mem_write	:  STD_LOGIC;
+	SIGNAL do_mem_read	:  STD_LOGIC;
+	SIGNAL waitrequest_from_memory:  STD_LOGIC;
 
 begin
 
   -------------------------------------------------------------MUXES
 
-  intermediate_data_out <= data_read_from_memory when MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1' else
+  intermediate_data_out <= data_read_from_memory when do_mem_read = '1' else
     ALU_output_from_EX;
+	 
+  ----------------------------------------------------DATA MEM PORT MAP
+	Data_Memory:
+		DataMEM 	GENERIC MAP(
+			ram_size => 8192
+		)
+		PORT MAP (
+			clock => clk,
+			writedata => data_to_write_to_memory,
+			address => address_for_memory,
+			memwrite => do_mem_write,
+			memread =>do_mem_read,
+			readdata => data_read_from_memory,
+			waitrequest => waitrequest_from_memory
+		);	
 
   -------------------------------------------------------------PROCESSES
 
   ------Memory operation process
-  MEMORY_PROCESS : process (clk, waitrequest_from_memory)
+  MEMORY_PROCESS : process (clk)
   begin
 
     --Set inputs to memeory
@@ -94,6 +132,8 @@ begin
       --Set signals according to the MEM control signals if its a write or a read
 		if (MEM_STAGE_CONTROL_SIGNALS.read_from_memory = '1') then
 			do_mem_read <= '1';
+		else
+			do_mem_read <= '0'; --otherwise will be always U
 		end if;
 		
 		if (MEM_STAGE_CONTROL_SIGNALS.write_to_memory = '1') then
@@ -104,7 +144,7 @@ begin
 		end if;
 		
       --Once memory returns wait request, we have its output if memory read operation was performed.
-     -- wait until rising_edge(waitrequest_from_memory);
+      --wait until rising_edge(waitrequest_from_memory);
 
     end if;
 
@@ -121,6 +161,7 @@ begin
         data_out_to_WB <= (others => '0');
         MEM_destination_reg_RD_out <= (others => '0');
   		  MEM_WB_STAGE_CONTROL_SIGNALS_out <= (others => '0');
+		  --data_read_from_memory <= (others => '0');
 
   		elsif rising_edge(clk) then
 

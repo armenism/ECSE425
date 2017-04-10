@@ -10,8 +10,8 @@ ENTITY instruction_decode IS
 	PORT (
 		clock 			: IN	STD_LOGIC;
 		rst				: IN	STD_LOGIC;
-		rd_ready			: IN	STD_LOGIC;
-		wr_done			: IN	STD_LOGIC;
+		--rd_ready			: IN	STD_LOGIC;
+		--wr_done			: IN	STD_LOGIC;
 		branch_taken	: IN 	STD_LOGIC; --Input from IF to know if the branch was taken
 
 		--Write back inputs
@@ -196,11 +196,12 @@ BEGIN
 	-- instruction
 	insert_nop <= '1' WHEN (bp_ID_ctrl_MEM.read_from_memory = '1' AND
 							((bp_ID_rt = rs) or bp_ID_rt = rt))
-							OR (wr_done = '1') else
+							--OR (wr_done = '1') else
+							else
 				 '0';
 	hazard_stall <= insert_nop OR mem_busacccess_in;
 	ID_stall_IF <= hazard_stall;
-	stall <= hazard_stall OR ((NOT rd_ready) AND (NOT wr_done));
+	stall <= hazard_stall; --OR ((NOT rd_ready) AND (NOT wr_done));
 
 
 	pipeline : PROCESS (clock, rst)

@@ -25,12 +25,14 @@ ENTITY DataMEM IS
 END DataMEM;
 
 ARCHITECTURE rtl OF DataMEM IS
+
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
 	SIGNAL ram_block: MEM;
 	SIGNAL read_address_reg:  STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
-	--Signal short_address: Std_LOGIC_VECTOR (12 downto 0);
+	SIGNAL read_data_sig:  STD_LOGIC_VECTOR (31 DOWNTO 0);
+	
 BEGIN
 	
 	--short_address <= address(12 downto 0);
@@ -48,12 +50,14 @@ BEGIN
 		IF (clock'event AND clock = '1') THEN
 			IF (memwrite = '1') THEN
 				ram_block(to_integer(signed(address))) <= writedata;
+			ELSIF (memread = '1') THEN 
+				--read_data_sig <= ram_block(to_integer(signed(address)));
 			END IF;
 		read_address_reg <= address;
 		END IF;
 	END PROCESS;
-
-
+	
+	--readdata <= ram_block(to_integer(signed(read_address_reg)));
 
 	--The waitrequest signal is used to vary response time in simulation
 	--Read and write should never happen at the same time.
@@ -61,15 +65,13 @@ BEGIN
 	BEGIN
 		IF(memwrite'event AND memwrite = '1')THEN
 			write_waitreq_reg <= '0' after mem_delay, '1' after mem_delay + clock_period;
-
 		END IF;
 	END PROCESS;
 
 	waitreq_r_proc: PROCESS (memread)
 	BEGIN
 		IF(memread'event AND memread = '1')THEN
-		
-			readdata <= ram_block(to_integer(signed(read_address_reg)));
+			readdata <= ram_block(to_integer(signed(address)));
 			read_waitreq_reg <= '0' after mem_delay, '1' after mem_delay + clock_period;
 		END IF;
 	END PROCESS;

@@ -17,15 +17,15 @@ ENTITY Driver IS
 		rst				: 	IN  STD_LOGIC;
 
 		instr_mem_address	:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
-      instr_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0);    --what we get from instruction memory after requesting the address
+      		instr_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0)    --what we get from instruction memory after requesting the address
 	 
 		--MEM stage signals necessary to communicate with the main memory residing in the test bench 
-		data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
-		waitrequest_from_memory: in STD_LOGIC; 
-		data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
-		address_for_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
-		do_mem_write	: out STD_LOGIC;
-		do_mem_read	: out STD_LOGIC
+		--data_read_from_memory : in STD_LOGIC_VECTOR (31 DOWNTO 0);
+		--waitrequest_from_memory: in STD_LOGIC; 
+		--data_to_write_to_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
+		--address_for_memory : out STD_LOGIC_VECTOR (31 DOWNTO 0);
+		--do_mem_write	: out STD_LOGIC;
+		--do_mem_read	: out STD_LOGIC
 	 
 	);
 
@@ -35,10 +35,10 @@ ARCHITECTURE arch OF Driver IS
 
 	SIGNAL ready : STD_LOGIC;
 	SIGNAL init : STD_LOGIC;
-	SIGNAL data_to_write_to_memory_sig :  STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL address_for_memory_sig :  STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL do_mem_write_sig	:  STD_LOGIC;
-	SIGNAL do_mem_read_sig	:  STD_LOGIC;
+	--SIGNAL data_to_write_to_memory_sig :  STD_LOGIC_VECTOR (31 DOWNTO 0);
+	--SIGNAL address_for_memory_sig :  STD_LOGIC_VECTOR (31 DOWNTO 0);
+	--SIGNAL do_mem_write_sig	:  STD_LOGIC;
+	--SIGNAL do_mem_read_sig	:  STD_LOGIC;
 
   --Control uni declaration
 	COMPONENT CPU_control_unit IS
@@ -87,8 +87,8 @@ ARCHITECTURE arch OF Driver IS
 		PORT (
 			clock 			: IN	STD_LOGIC;
 			rst				: IN	STD_LOGIC;
-			rd_ready			: IN	STD_LOGIC;
-			wr_done			: IN	STD_LOGIC;
+			--rd_ready			: IN	STD_LOGIC;
+			--wr_done			: IN	STD_LOGIC;
 			branch_taken	: IN 	STD_LOGIC; --Input from IF to know if the branch was taken
 
 			--Write back inputs
@@ -164,7 +164,7 @@ ARCHITECTURE arch OF Driver IS
 
 			 EX_program_counter		: in std_logic_vector (31 downto 0);
 			 EX_sign_extended_IMM	: in std_logic_vector (31 downto 0);
-			 EX_destination_reg_RD	: in std_logic_vector (4 downto 0);
+			 EX_destination_reg_rd	: in std_logic_vector (4 downto 0);
 
 			 --Control signals to current stage:
 			 EX_STAGE_CONTROL_SIGNALS	: in EX_CTRL_SIGS;
@@ -227,17 +227,17 @@ ARCHITECTURE arch OF Driver IS
 			 --Data bypassing to ID --TODO HI LO bypassing
 			 bp_MEM_reg_write	: OUT STD_LOGIC;
 			 bp_MEM_reg_data 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0);
+			 bp_MEM_dest_reg 	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
 			 
 			 	
 			 --Interface sinals to and from driver that comminucates with the main memory 
-			 data_read_from_memory : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 waitrequest_from_memory: IN STD_LOGIC;
+			 --data_read_from_memory : IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+			 --waitrequest_from_memory: IN STD_LOGIC;
 			 
-			 data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 address_for_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-			 do_mem_write	: OUT STD_LOGIC;
-			 do_mem_read	: OUT STD_LOGIC
+			 --data_to_write_to_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+			 --address_for_memory : OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+			 --do_mem_write	: OUT STD_LOGIC;
+			 --do_mem_read	: OUT STD_LOGIC
 	 
 		);
 	END COMPONENT;
@@ -293,8 +293,8 @@ BEGIN
 		PORT MAP (
 			clock => clk,
 			rst => rst,
-			rd_ready => waitrequest_from_memory,
-			wr_done => waitrequest_from_memory,
+			--rd_ready => waitrequest_from_memory,
+			--wr_done => waitrequest_from_memory,
 			branch_taken => branch_taken,
 			WB_ctrl => MEM_WB_control_signals,
 			WB_data => MEM_data_out_to_WB,
@@ -377,32 +377,32 @@ BEGIN
 
 			bp_MEM_reg_write => bp_MEM_reg_write,
 			bp_MEM_reg_data => bp_MEM_reg_data,
-			bp_MEM_dest_reg => bp_MEM_dest_reg,
+			bp_MEM_dest_reg => bp_MEM_dest_reg
 			
-			data_read_from_memory =>data_read_from_memory,
-			waitrequest_from_memory => waitrequest_from_memory,
+			--data_read_from_memory =>data_read_from_memory,
+			--waitrequest_from_memory => waitrequest_from_memory,
 			 
-			data_to_write_to_memory => data_to_write_to_memory_sig,
-			address_for_memory => address_for_memory_sig,
-			do_mem_write => do_mem_write_sig,
-			do_mem_read	=> do_mem_read_sig
+			--data_to_write_to_memory => data_to_write_to_memory_sig,
+			--address_for_memory => address_for_memory_sig,
+			--do_mem_write => do_mem_write_sig,
+			--do_mem_read	=> do_mem_read_sig
 		);
 
 	Handle_reset: Process(clk, rst)
 		begin
 			if rising_edge(rst) then
 				instr_mem_address <=  "00000000000000000000000000000000";
-				data_to_write_to_memory <=  "00000000000000000000000000000000";
-				address_for_memory <=  "00000000000000000000000000000000";
-				do_mem_write	<= '0';
-				do_mem_read	<= '0';
+				--data_to_write_to_memory <=  "00000000000000000000000000000000";
+				--address_for_memory <=  "00000000000000000000000000000000";
+				--do_mem_write	<= '0';
+				--do_mem_read	<= '0';
 			elsif rst = '0' then
 				instr_mem_address <= IF_PC;
 				--instr_mem_address <= x"00000000";
-				data_to_write_to_memory <= data_to_write_to_memory_sig;
-				address_for_memory <= address_for_memory_sig;
-				do_mem_write <= do_mem_write_sig;
-				do_mem_read <= do_mem_read_sig;
+				--data_to_write_to_memory <= data_to_write_to_memory_sig;
+				--address_for_memory <= address_for_memory_sig;
+				--do_mem_write <= do_mem_write_sig;
+				--do_mem_read <= do_mem_read_sig;
 		   end if;
 		end process;
 END arch;
