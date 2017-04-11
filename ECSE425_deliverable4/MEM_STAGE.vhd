@@ -118,11 +118,11 @@ begin
   -------------------------------------------------------------PROCESSES
 
   ------Memory operation process
-  MEMORY_PROCESS : process (clk)
+  MEMORY_PROCESS : process (MEM_STAGE_CONTROL_SIGNALS)
   begin
 
     --Set inputs to memeory
-    if rising_edge(clk) then
+    if MEM_STAGE_CONTROL_SIGNALS'event then
 	 
       -- Address for the memory must be BYTE addressable. We have from 0 to 32767 bytes. The ALU output containing
       -- the address is a 32 bit address (at lw or sw operations). Truncate the address to use only the lower 15 bit.
