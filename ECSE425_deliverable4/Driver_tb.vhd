@@ -167,7 +167,7 @@ clock_process : process
 --------------------------------------------------MAIN PROCESS					
 test_process : process
 
-	FILE ex_file: TEXT open READ_MODE is "P:\ECSE 425\ECSE425\ECSE425\ECSE425_deliverable4\bitwiseLoad.txt";
+	FILE ex_file: TEXT open READ_MODE is "\\campus.mcgill.ca\emf\cpe\cdibet\My Documents\ECSE425_deliverable4\fib.txt";
    VARIABLE current_line: line;
 	variable i : integer := 0;
 	variable j : integer := 0;

@@ -34,6 +34,8 @@ entity MEM_STAGE is
     --WB stage signals coming passed from EX stage. To be passed further to WB stage.
     MEM_STAGE_CONTROL_SIGNALS: in MEM_CTRL_SIGS;
 	 WB_STAGE_CONTROL_SIGNALS: in WB_CTRL_SIGS;
+	 
+	 done_program : in STD_LOGIC;
 
     --STAGE OUTPUTS
     --Data read from memory/ALU
@@ -69,7 +71,7 @@ architecture arch of MEM_STAGE is
 	COMPONENT DataMEM IS
 		GENERIC(
 			ram_size : INTEGER := 8192;
-			mem_delay : time := 10 ns;
+			mem_delay : time := 1 ns;
 			clock_period : time := 1 ns
 		);
 		PORT (
@@ -78,6 +80,7 @@ architecture arch of MEM_STAGE is
 			address: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 			memwrite: IN STD_LOGIC;
 			memread: IN STD_LOGIC;
+			done_program: IN STD_LOGIC;
 			readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 			waitrequest: OUT STD_LOGIC
 		);
@@ -111,6 +114,7 @@ begin
 			address => address_for_memory,
 			memwrite => do_mem_write,
 			memread =>do_mem_read,
+			done_program => done_program,
 			readdata => data_read_from_memory,
 			waitrequest => waitrequest_from_memory
 		);	

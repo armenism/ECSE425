@@ -15,7 +15,7 @@ ENTITY Driver IS
 	PORT (
 		clk				:	IN  STD_LOGIC;
 		rst				: 	IN  STD_LOGIC;
-		done_program_in : in STD_LOGIC;
+		done_program_in: in STD_LOGIC;
 
 		instr_mem_address	:	OUT STD_LOGIC_VECTOR (31 DOWNTO 0); --mem address destined for instruction memory component (PC in 32 bit now)
       		instr_mem_data  : in STD_LOGIC_VECTOR (31 DOWNTO 0)    --what we get from instruction memory after requesting the address
@@ -218,6 +218,8 @@ ARCHITECTURE arch OF Driver IS
 			 --WB stage signals coming passed from EX stage. To be passed further to WB stage.
 			 MEM_STAGE_CONTROL_SIGNALS: in MEM_CTRL_SIGS;
 			 WB_STAGE_CONTROL_SIGNALS: in WB_CTRL_SIGS;
+			 
+			 done_program : in STD_LOGIC;
 
 			  --STAGE OUTPUTS
 			 --Data read from memory/ALU
@@ -374,6 +376,8 @@ BEGIN
 			ALU_output_from_EX => EX_ALU,
 			data_to_write_from_EX => EX_data,
 			destination_reg_RD => EX_dest_reg,
+			
+			done_program => done_program_in,
 
 
 			MEM_WB_STAGE_CONTROL_SIGNALS_out	=> MEM_WB_control_signals,

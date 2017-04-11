@@ -6,6 +6,8 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
+use STD.textio.all; 
+use ieee.std_logic_textio.all;
 
 ENTITY DataMEM IS
 	GENERIC(
@@ -19,6 +21,7 @@ ENTITY DataMEM IS
 		address:  IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
+		done_program : IN STD_LOGIC;
 		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 		waitrequest: OUT STD_LOGIC
 	);
@@ -76,6 +79,21 @@ BEGIN
 		END IF;
 	END PROCESS;
 	waitrequest <= write_waitreq_reg and read_waitreq_reg;
+	
+	final_write : process(done_program)
+	variable reg_line : integer := 0;
+	variable line_to_write : line;
+	file reg_file : TEXT open WRITE_MODE is "\\campus.mcgill.ca\emf\cpe\cdibet\My Documents\ECSE425_deliverable4\memory.txt";
+	begin
+		if(done_program = '1') then
+			--file_open(reg_file, "\\campus.mcgill.ca\emf\cpe\cdibet\Desktop\register_output.txt", write_mode);
+			while (reg_line /= 8192) loop
+				write(line_to_write, ram_block(reg_line), right, 32);
+				writeline(reg_file, line_to_write);
+				reg_line := reg_line + 1;
+			end loop;
+		end if;
+	end process final_write;
 
 
 END rtl;
